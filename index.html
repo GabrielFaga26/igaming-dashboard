@@ -6,9 +6,17 @@
 <title>Painel iGaming</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#e8e8e8;min-height:100vh}
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.login-box{background:#111;border:1px solid #2a2a2a;border-radius:16px;padding:2rem;width:100%;max-width:380px}
+.login-title{font-size:22px;font-weight:600;color:#fff;margin-bottom:4px}
+.login-sub{font-size:13px;color:#555;margin-bottom:1.5rem}
+.login-err{background:#1a0808;color:#f87171;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:1rem;display:none}
+/* MAIN */
 .dash{padding:1.5rem;max-width:1200px;margin:0 auto}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;padding-bottom:1rem;border-bottom:1px solid #1e1e1e}
 .tabs{display:flex;gap:4px;background:#141414;border-radius:8px;padding:4px;margin-bottom:1.5rem;border:1px solid #222;flex-wrap:wrap}
@@ -55,7 +63,7 @@ tr:hover td{background:#141414}
 .pa{background:#431407;color:#fb923c}.pb{background:#0c1a3d;color:#60a5fa}
 .p0{background:#1a1a1a;color:#555}
 input,select,textarea{width:100%;padding:8px 10px;border:1px solid #222;border-radius:8px;font-size:13px;background:#141414;color:#e8e8e8;font-family:inherit;outline:none;transition:border .15s}
-input:focus,select:focus{border-color:#333}
+input:focus,select:focus,textarea:focus{border-color:#333}
 select option{background:#141414}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
 @media(max-width:500px){.fg{grid-template-columns:1fr}}
@@ -93,13 +101,42 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 .toggle input:checked+.toggle-slider:before{transform:translateX(16px);background:#fff}
 .periodo-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:flex-end;margin-bottom:8px}
 @media(max-width:500px){.periodo-row{grid-template-columns:1fr 1fr}}
-/* currency toggle */
 .cur-toggle{display:flex;background:#141414;border:1px solid #222;border-radius:8px;overflow:hidden}
 .cur-btn{padding:5px 14px;font-size:12px;border:none;background:transparent;color:#666;cursor:pointer;font-family:inherit;transition:all .15s}
 .cur-btn.active{background:#185FA5;color:#fff}
+.user-badge{display:flex;align-items:center;gap:8px;background:#141414;border:1px solid #222;border-radius:8px;padding:5px 12px;font-size:12px;color:#888}
+.user-badge span{color:#ccc;font-weight:500}
+.loading-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#555;font-size:14px}
 </style>
 </head>
 <body>
+
+<!-- LOADING -->
+<div id="loading-screen" class="loading-screen">
+  <div class="spin" style="width:20px;height:20px;border-width:3px"></div>
+  <div>Carregando...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-wrap" style="display:none">
+  <div class="login-box">
+    <div class="login-title">Painel iGaming</div>
+    <div class="login-sub">Entre com sua conta para continuar</div>
+    <div class="login-err" id="login-err"></div>
+    <div style="margin-bottom:1rem">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')fazerLogin()"/>
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()"/>
+    </div>
+    <button class="btn bp" style="width:100%;padding:10px" onclick="fazerLogin()" id="btn-login">Entrar</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="app" style="display:none">
 <div class="dash">
 
 <div class="topbar">
@@ -108,17 +145,21 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div style="font-size:12px;color:#444;margin-top:2px" id="last-up">—</div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <select id="dolar-sel" style="width:auto;font-size:12px;padding:6px 10px" onchange="dolar=parseFloat(this.value);renderCasas();calcular()">
+    <select id="dolar-sel" style="width:auto;font-size:12px;padding:6px 10px" onchange="salvarDolarDB(parseFloat(this.value))">
       <option value="5.27">$ 1 = R$ 5,27</option>
       <option value="5.50">$ 1 = R$ 5,50</option>
       <option value="5.80">$ 1 = R$ 5,80</option>
       <option value="6.00">$ 1 = R$ 6,00</option>
     </select>
     <button class="btn bs bp" onclick="importarTudo()">↻ Atualizar dados</button>
+    <div class="user-badge" id="user-badge">
+      <span id="user-nome">—</span>
+      <button class="btn bs bd" style="padding:3px 8px;font-size:11px" onclick="fazerLogout()">Sair</button>
+    </div>
   </div>
 </div>
 
-<div class="tabs">
+<div class="tabs" id="main-tabs">
   <button class="tab active" onclick="aba(this,'overview')">Visão Geral</button>
   <button class="tab" onclick="aba(this,'ftds')">Lançar FTDs</button>
   <button class="tab" onclick="aba(this,'config')">Configurações</button>
@@ -127,7 +168,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 <!-- VISÃO GERAL -->
 <div id="sec-overview" class="section active">
   <div style="display:flex;gap:10px;margin-bottom:1.25rem;align-items:flex-end;flex-wrap:wrap">
-    <div><label>Visualizar</label>
+    <div id="vis-sel-wrap"><label>Visualizar</label>
       <select id="vis-sel" style="min-width:220px" onchange="onVisChange()">
         <option value="">Todos</option>
       </select>
@@ -162,12 +203,23 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 
   <div class="row2">
     <div class="card">
-      <div class="ch"><span class="ct">FTDs por casa</span><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="pill pb" id="periodo-badge">—</span><div class="cur-toggle"><button class="cur-btn active" id="btn-lista" onclick="setCasaView('lista')">Lista</button><button class="cur-btn" id="btn-grafico" onclick="setCasaView('grafico')">Gráfico</button></div></div></div>
+      <div class="ch">
+        <span class="ct">FTDs por casa</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="pill pb" id="periodo-badge">—</span>
+          <div class="cur-toggle">
+            <button class="cur-btn active" id="btn-lista" onclick="setCasaView('lista')">Lista</button>
+            <button class="cur-btn" id="btn-grafico" onclick="setCasaView('grafico')">Gráfico</button>
+          </div>
+        </div>
+      </div>
       <div id="casa-lista-view" style="overflow-x:auto">
         <table><thead><tr><th>Casa</th><th>FTDs</th><th>Receita</th><th>%</th></tr></thead>
         <tbody id="tbl-por-casa"><tr><td colspan="4" class="empty">Calcule as métricas</td></tr></tbody></table>
       </div>
-      <div id="casa-grafico-view" style="display:none;position:relative;height:220px"><canvas id="chart-casas" role="img" aria-label="FTDs por casa">FTDs por casa.</canvas></div>
+      <div id="casa-grafico-view" style="display:none;position:relative;height:220px">
+        <canvas id="chart-casas" role="img" aria-label="FTDs por casa">FTDs por casa.</canvas>
+      </div>
     </div>
     <div class="card">
       <div class="ch"><span class="ct">Investimento por dia</span></div>
@@ -198,16 +250,13 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
         <div><div style="font-size:11px;color:#555">Total em USD</div><div style="font-weight:500;font-size:15px;color:#4ade80" id="p-usd">—</div></div>
       </div>
     </div>
-    <button class="btn bp" onclick="salvarFTD()">Salvar lançamento</button>
+    <button class="btn bp" id="btn-salvar-ftd" onclick="salvarFTD()">Salvar lançamento</button>
   </div>
-
   <div class="card">
     <div class="ch">
       <span class="ct">Histórico de dias</span>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <select id="hist-proj-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs()">
-          <option value="">Todos</option>
-        </select>
+        <select id="hist-proj-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs()"><option value="">Todos</option></select>
         <button class="btn bs bgreen" onclick="exportFTDsExcel()">Exportar Excel</button>
         <button class="btn bs bp" onclick="atualizarDia()">↻ Atualizar dados do dia</button>
       </div>
@@ -224,7 +273,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div class="card">
       <div class="fg" style="margin-bottom:0">
         <div><label>R$ por USD</label><input type="number" id="cfg-dolar" step="0.01" value="5.27"/></div>
-        <div style="display:flex;align-items:flex-end"><button class="btn" onclick="saveDolar()">Salvar</button></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn" onclick="salvarDolarDB(parseFloat(document.getElementById('cfg-dolar').value))">Salvar</button></div>
       </div>
     </div>
   </div>
@@ -248,7 +297,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <div class="cfg-section">
+  <div class="cfg-section" id="cfg-projetos-section">
     <div class="cfg-section-title">Operações e Projetos</div>
     <div class="card">
       <div class="fg">
@@ -277,15 +326,10 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
               <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
               <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB CA_3325"/></div>
               <div><label>Filtro campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
-              <div><label>Moeda dos valores</label>
-                <select class="inv-moeda">
-                  <option value="BRL">Real (BRL) — já em R$</option>
-                  <option value="USD">Dólar (USD) — converte pelo câmbio</option>
-                </select>
-              </div>
+              <div><label>Moeda</label><select class="inv-moeda"><option value="BRL">Real (BRL)</option><option value="USD">Dólar (USD)</option></select></div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn bs" onclick="testarContaBlock(this)">Testar conexão</button>
+              <button class="btn bs" onclick="testarContaBlock(this)">Testar</button>
               <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span>
             </div>
           </div>
@@ -299,6 +343,27 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div class="card">
       <div class="ch"><span class="ct">Projetos cadastrados</span><span id="proj-count" class="pill pb">0</span></div>
       <div id="lista-projetos"><div class="empty">Nenhum projeto cadastrado</div></div>
+    </div>
+  </div>
+
+  <!-- ADMIN ONLY: Gestores -->
+  <div class="cfg-section" id="cfg-gestores-section" style="display:none">
+    <div class="cfg-section-title">Gestores</div>
+    <div class="card">
+      <div class="fg">
+        <div><label>Nome</label><input type="text" id="g-nome" placeholder="Ex: João Silva"/></div>
+        <div><label>Email</label><input type="text" id="g-email" placeholder="joao@email.com"/></div>
+        <div><label>Senha inicial</label><input type="password" id="g-senha" placeholder="Mínimo 6 caracteres"/></div>
+        <div><label>Operação vinculada</label>
+          <select id="g-op"><option value="">Selecione a operação...</option></select>
+        </div>
+      </div>
+      <button class="btn bp" onclick="criarGestor()" id="btn-criar-gestor">+ Criar acesso</button>
+      <div id="gestor-status" style="font-size:12px;margin-top:8px;color:#555"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Gestores cadastrados</span><span id="gestores-count" class="pill pb">0</span></div>
+      <div id="lista-gestores"><div class="empty">Nenhum gestor cadastrado</div></div>
     </div>
   </div>
 
@@ -319,6 +384,9 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
   </div>
 </div>
 
+</div>
+</div>
+
 <!-- MODAL EDITAR CASA -->
 <div class="modal-overlay" id="modal-casa" style="display:none" onclick="if(event.target===this)closeModal('modal-casa')">
   <div class="modal">
@@ -328,7 +396,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
       <div><label>Geo / País</label><input type="text" id="ec-geo"/></div>
     </div>
     <div style="margin-bottom:1rem">
-      <label>CPA padrão (USD) — usado quando não há período específico</label>
+      <label>CPA padrão (USD)</label>
       <input type="number" id="ec-cpa" placeholder="Ex: 25"/>
     </div>
     <div class="toggle-row">
@@ -336,7 +404,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
       <span style="font-size:13px;color:#bbb">Ativar acordos por período</span>
     </div>
     <div id="ec-periodos-section" style="display:none">
-      <div style="font-size:11px;color:#555;margin-bottom:10px">O CPA da data do lançamento é usado automaticamente. Se não cair em nenhum período, usa o CPA padrão.</div>
+      <div style="font-size:11px;color:#555;margin-bottom:10px">O CPA da data do lançamento é usado automaticamente.</div>
       <div id="ec-periodos-list"></div>
       <button class="btn bs bgreen" onclick="addPeriodo()" style="margin-top:4px">+ Adicionar período</button>
     </div>
@@ -378,464 +446,136 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
   </div>
 </div>
 
-</div>
 <script>
+// SUPABASE
+const SUPA_URL='https://cuenafmxfmbvzhixuhej.supabase.co';
+const SUPA_KEY='sb_publishable_2j8U41YIhunRh1-TtCzJdA_7fDmAZ7z';
+const {createClient}=supabase;
+const sb=createClient(SUPA_URL,SUPA_KEY);
+
 let casas=[],projetos=[],ftds=[],leads=[],investData=[],logs=[];
-let dolar=5.27,invChart=null,editCasaId=null,editProjId=null,currency='BRL';
+let dolar=5.27,invChart=null,casaChart=null,casaView='lista',currency='BRL';
+let editCasaId=null,editProjId=null;
+let currentUser=null,currentUserData=null;
 
-function load(){
-  try{casas=JSON.parse(localStorage.getItem('ig_casas')||'[]')}catch(e){casas=[]}
-  try{projetos=JSON.parse(localStorage.getItem('ig_proj')||'[]')}catch(e){projetos=[]}
-  try{ftds=JSON.parse(localStorage.getItem('ig_ftds')||'[]')}catch(e){ftds=[]}
-  try{leads=JSON.parse(localStorage.getItem('ig_leads')||'[]')}catch(e){leads=[]}
-  try{investData=JSON.parse(localStorage.getItem('ig_invest')||'[]')}catch(e){investData=[]}
-  try{dolar=parseFloat(localStorage.getItem('ig_dolar')||'5.27')}catch(e){dolar=5.27}
-}
-function save(){
-  try{
-    localStorage.setItem('ig_casas',JSON.stringify(casas));
-    localStorage.setItem('ig_proj',JSON.stringify(projetos));
-    localStorage.setItem('ig_ftds',JSON.stringify(ftds));
-    localStorage.setItem('ig_leads',JSON.stringify(leads));
-    localStorage.setItem('ig_invest',JSON.stringify(investData));
-    localStorage.setItem('ig_dolar',dolar);
-  }catch(e){}
-}
-function log(msg){
-  logs.unshift({t:new Date().toLocaleTimeString('pt-BR'),m:msg});
-  const el=document.getElementById('log-area');
-  if(!el)return;
-  el.innerHTML=logs.slice(0,40).map(l=>`<div class="log-e"><span>${l.m}</span><span>${l.t}</span></div>`).join('')||'<div class="empty">Nenhuma atividade</div>';
-}
-function aba(el,id){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('sec-'+id).classList.add('active');
-}
-
-// CURRENCY
-function setCurrency(c){
-  currency=c;
-  document.getElementById('btn-brl').classList.toggle('active',c==='BRL');
-  document.getElementById('btn-usd').classList.toggle('active',c==='USD');
-  calcular();
-}
-function fmt(brlValue){
-  if(currency==='USD') return'$ '+(brlValue/dolar).toFixed(2);
-  return'R$ '+parseFloat(brlValue).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function fmtBRL(v){return'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function fmtUSD(v){return'$ '+parseFloat(v).toFixed(2)}
-
-function toYMD(s){
-  if(!s)return'';s=s.trim();
-  // yyyy-mm-dd
-  if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.substring(0,10);
-  // dd/mm/yyyy or d/m/yyyy (with or without leading zeros)
-  if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){
-    const p=s.split('/');
-    const d=p[0].padStart(2,'0'),m=p[1].padStart(2,'0'),y=p[2];
-    return`${y}-${m}-${d}`;
+// AUTH
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    currentUser=session.user;
+    await carregarUsuario();
+    mostrarApp();
+  } else {
+    mostrarLogin();
   }
-  // mm/dd/yyyy fallback (US format from some sheets)
-  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){
-    const p=s.split('/');
-    const m=p[0].padStart(2,'0'),d=p[1].padStart(2,'0'),y=p[2];
-    return`${y}-${m}-${d}`;
+}
+
+async function carregarUsuario(){
+  const {data}=await sb.from('usuarios').select('*').eq('id',currentUser.id).single();
+  currentUserData=data;
+}
+
+function mostrarLogin(){
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+async function mostrarApp(){
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('user-nome').textContent=currentUserData?.nome||currentUser.email;
+
+  const isAdmin=currentUserData?.role==='admin';
+
+  // Gestor: esconde seletor vis-sel (só vê sua operação)
+  if(!isAdmin){
+    document.getElementById('vis-sel-wrap').style.display='none';
+    document.getElementById('cfg-gestores-section').style.display='none';
+  } else {
+    document.getElementById('cfg-gestores-section').style.display='block';
   }
-  return s.substring(0,10);
-}
-function extractId(input){const m=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:input.trim();}
-function buildURL(id,sheet){return`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;}
-function parseCSV(text){
-  const lines=text.trim().split('\n').filter(l=>l.trim());
-  return lines.slice(1).map(line=>{
-    const cols=[];let cur='',inQ=false;
-    for(let i=0;i<line.length;i++){
-      const c=line[i];
-      if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=c;
-    }
-    cols.push(cur.trim());return cols;
-  });
-}
-function setStatus(elId,msg,ok){
-  const el=document.getElementById(elId);if(!el)return;
-  el.style.display='block';el.className=ok?'status-ok':'status-err';el.textContent=msg;
-}
-function closeModal(id){document.getElementById(id).style.display='none';}
 
-// CPA por data
-function getCPAForDate(casa,dateStr){
-  if(!casa)return 0;
-  if(casa.usePeriodos&&casa.periodos&&casa.periodos.length){
-    const ymd=toYMD(dateStr)||dateStr;
-    const match=casa.periodos.find(p=>{
-      const from=p.from||'';const to=p.to||'';
-      return ymd>=from&&(!to||ymd<=to);
-    });
-    if(match)return parseFloat(match.cpa)||0;
-  }
-  return parseFloat(casa.cpa)||0;
-}
+  await carregarConfig();
+  await carregarCasas();
+  await carregarProjetos();
+  await carregarFTDs();
+  updateSelects();
 
-// TESTAR SHEETS
-async function testarSheet(idField,abaField,statusField){
-  const idRaw=document.getElementById(idField).value.trim();
-  const abaNome=document.getElementById(abaField).value.trim();
-  if(!idRaw||!abaNome){setStatus(statusField,'Preencha ID e aba',false);return;}
-  setStatus(statusField,'Testando...',true);
-  try{
-    const resp=await fetch(buildURL(extractId(idRaw),abaNome));
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const text=await resp.text();
-    if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
-    const rows=parseCSV(text);
-    setStatus(statusField,`✓ OK — ${rows.length} linhas na aba "${abaNome}"`,true);
-    log('Teste OK: '+rows.length+' linhas');
-  }catch(e){setStatus(statusField,'Erro: '+e.message,false);}
-}
-
-async function testarContaBlock(btn){
-  const block=btn.closest('.acc-block');
-  const idRaw=block.querySelector('.inv-id').value.trim();
-  const abaNome=block.querySelector('.inv-aba').value.trim();
-  const st=block.querySelector('.conta-status');
-  if(!idRaw||!abaNome){st.textContent='Preencha ID e aba';st.style.color='#f87171';return;}
-  st.textContent='Testando...';st.style.color='#888';
-  try{
-    const resp=await fetch(buildURL(extractId(idRaw),abaNome));
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const text=await resp.text();
-    if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
-    const rows=parseCSV(text);
-    const sample=rows.slice(0,3).map(r=>r[2]||'').filter(Boolean);
-    st.textContent=`✓ OK — ${rows.length} linhas. Amostra col C: ${sample.join(', ')||'vazio'}`;
-    st.style.color='#4ade80';
-  }catch(e){st.textContent='Erro: '+e.message;st.style.color='#f87171';}
-}
-
-function addContaBlock(containerId){
-  const c=document.getElementById(containerId);
-  const div=document.createElement('div');div.className='acc-block';
-  div.innerHTML=`<div class="fg" style="margin-bottom:6px">
-    <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
-    <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB"/></div>
-    <div><label>Filtro campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
-    <div><label>Moeda dos valores</label>
-      <select class="inv-moeda">
-        <option value="BRL">Real (BRL) — já em R$</option>
-        <option value="USD">Dólar (USD) — converte pelo câmbio</option>
-      </select>
-    </div>
-  </div>
-  <div style="display:flex;gap:8px">
-    <button class="btn bs" onclick="testarContaBlock(this)">Testar</button>
-    <button class="btn bs bd" onclick="this.closest('.acc-block').remove()">Remover</button>
-    <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span>
-  </div>`;
-  c.appendChild(div);
-}
-
-function getContasFromForm(formId){
-  const contas=[];
-  document.querySelectorAll('#'+formId+' .acc-block').forEach(block=>{
-    const idRaw=block.querySelector('.inv-id').value.trim();
-    const ab=block.querySelector('.inv-aba').value.trim();
-    const fi=block.querySelector('.inv-filtro').value.trim();
-    const mo=block.querySelector('.inv-moeda').value;
-    if(idRaw&&ab)contas.push({id:extractId(idRaw),aba:ab,filtro:fi,moeda:mo||'BRL'});
-  });
-  return contas;
-}
-
-// IMPORTAR
-async function importarTudo(){
-  const st=document.getElementById('import-status');
-  st.innerHTML='<span class="spin"></span>Importando...';
-  log('Importando...');
-  leads=[];investData=[];
-  let lT=0,iT=0;
-  for(const p of projetos){
-    if(p.leadsId&&p.leadsAba){
-      try{
-        const resp=await fetch(buildURL(p.leadsId,p.leadsAba));
-        if(!resp.ok)throw new Error('HTTP '+resp.status);
-        const rows=parseCSV(await resp.text());
-        rows.forEach(r=>{
-          if(!r[0])return;
-          const dataEntrada=(r[1]||'').trim();
-          const dataDeposito=(r[2]||'').trim();
-          // ftdReal = col C tem valor que parece uma data (dd/mm/yyyy ou yyyy-mm-dd)
-          const isDate=v=>/\d{1,2}\/\d{1,2}\/\d{4}/.test(v)||/\d{4}-\d{2}-\d{2}/.test(v);
-          const ftdReal=!!(dataDeposito&&isDate(dataDeposito));
-          const dataDepYMD=toYMD(dataDeposito);
-          leads.push({
-            tid:r[0],
-            data:dataEntrada,       // col B = data entrada (usado para filtro de leads)
-            deposito:dataDeposito,  // col C = data depósito (usado para filtro de depósitos)
-            dataDeposito:dataDepYMD, // normalizado para comparação
-            ftdReal,
-            projId:p.id,projNome:p.nome,opNome:p.op
-          });
-          lT++;
-        });
-        log(`Leads "${p.nome}": ${rows.length} linhas`);
-      }catch(e){log('Erro leads '+p.nome+': '+e.message);}
-    }
-    for(const conta of (p.contas||[])){
-      if(!conta.id||!conta.aba)continue;
-      try{
-        const resp=await fetch(buildURL(conta.id,conta.aba));
-        if(!resp.ok)throw new Error('HTTP '+resp.status);
-        const rows=parseCSV(await resp.text());
-        const filtro=(conta.filtro||'').toLowerCase();
-        const moeda=conta.moeda||'BRL';
-        let iP=0;
-        rows.forEach(r=>{
-          const camp=(r[1]||'').toLowerCase();
-          if(filtro&&!camp.includes(filtro))return;
-          const raw=(r[2]||'').replace(/[^0-9.,\-]/g,'').replace(',','.');
-          let spend=parseFloat(raw)||0;
-          if(!spend)return;
-          if(moeda==='USD')spend=spend*dolar;
-          investData.push({data:r[0]||'',spend,projId:p.id,projNome:p.nome,opNome:p.op});
-          iT+=spend;iP+=spend;
-        });
-        log(`Invest "${p.nome}"/"${conta.aba}" [${moeda}]: R$ ${iP.toFixed(2)}`);
-      }catch(e){log('Erro invest: '+e.message);}
-    }
-  }
-  save();
+  const td=new Date().toISOString().split('T')[0];
+  document.getElementById('dt-i').value=td;
+  document.getElementById('dt-f').value=td;
+  document.getElementById('ftd-data').value=td;
   document.getElementById('last-up').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
-  st.textContent=`${lT} leads · R$ ${iT.toFixed(2)}`;
-  calcular();
-  log('Concluído — '+lT+' leads, R$ '+iT.toFixed(2));
 }
 
-// FILTRAR DADOS
-function getFilteredData(visOverride){
-  const di=document.getElementById('dt-i').value;
-  const df=document.getElementById('dt-f').value;
-  const vis=visOverride!==undefined?visOverride:document.getElementById('vis-sel').value;
-  let mL=leads,mI=investData,mF=ftds;
-  if(vis){
-    if(vis.startsWith('op:')){const o=vis.slice(3);mL=mL.filter(l=>l.opNome===o);mI=mI.filter(i=>i.opNome===o);mF=mF.filter(f=>f.opNome===o);}
-    else{const id=parseInt(vis.slice(5));mL=mL.filter(l=>l.projId===id);mI=mI.filter(i=>i.projId===id);mF=mF.filter(f=>f.projId===id);}
-  }
-  // leads filtrados pela data de ENTRADA (col B)
-  if(di)mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});
-  if(df)mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});
-  // investimento filtrado pela data
-  if(di)mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});
-  if(df)mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});
-  // FTDs lançados filtrados pela data
-  if(di)mF=mF.filter(f=>f.data>=di);
-  if(df)mF=mF.filter(f=>f.data<=df);
-
-  // depósitos sheet: conta todos os leads com col C preenchida (mesmo filtro de projeto/operação)
-  let mDeps=leads.filter(l=>l.ftdReal);
-  if(vis){
-    if(vis.startsWith('op:')){const o=vis.slice(3);mDeps=mDeps.filter(l=>l.opNome===o);}
-    else{const id=parseInt(vis.replace('proj:',''));mDeps=mDeps.filter(l=>l.projId===id);}
-  }
-  return{mL,mI,mF,tDeps:mDeps.length};
+async function fazerLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const senha=document.getElementById('login-senha').value;
+  const err=document.getElementById('login-err');
+  const btn=document.getElementById('btn-login');
+  err.style.display='none';
+  btn.textContent='Entrando...';btn.disabled=true;
+  const {data,error}=await sb.auth.signInWithPassword({email,password:senha});
+  btn.textContent='Entrar';btn.disabled=false;
+  if(error){err.textContent=error.message==='Invalid login credentials'?'Email ou senha incorretos':error.message;err.style.display='block';return;}
+  currentUser=data.user;
+  await carregarUsuario();
+  mostrarApp();
 }
 
-function calcMetrics(mL,mI,mF,tDeps){
-  const tL=mL.length,tF=mF.reduce((s,f)=>s+f.qtd,0);
-  const inv=mI.reduce((s,i)=>s+i.spend,0);
-  const conv=tL>0?(tF/tL*100).toFixed(1)+'%':'—';
-  const porCasa={};
-  mF.forEach(f=>{
-    if(!porCasa[f.casaNome])porCasa[f.casaNome]={qtd:0,receita:0};
-    porCasa[f.casaNome].qtd+=f.qtd;porCasa[f.casaNome].receita+=f.receita;
-  });
-  const rec=Object.values(porCasa).reduce((s,v)=>s+v.receita,0);
-  const lucro=rec-inv;
-  const roi=inv>0?rec/inv:0;
-  const cftd=tF>0?inv/tF:0;
-  const cpl=tL>0?inv/tL:0;
-  return{tL,tD:tDeps!==undefined?tDeps:0,tF,inv,conv,porCasa,rec,lucro,roi,cftd,cpl};
+async function fazerLogout(){
+  await sb.auth.signOut();
+  currentUser=null;currentUserData=null;
+  casas=[];projetos=[];ftds=[];leads=[];investData=[];
+  mostrarLogin();
 }
 
-function calcular(){
-  const {mL,mI,mF,tDeps}=getFilteredData();
-  const m=calcMetrics(mL,mI,mF,tDeps);
-  document.getElementById('h-inv').textContent=m.inv>0?fmt(m.inv):'—';
-  document.getElementById('h-leads').textContent=m.tL.toLocaleString('pt-BR');
-  document.getElementById('h-ftds').textContent=m.tF.toLocaleString('pt-BR');
-  document.getElementById('h-rec').textContent=m.rec>0?fmt(m.rec):'—';
-  const lucroEl=document.getElementById('h-lucro');
-  lucroEl.textContent=m.inv>0?fmt(m.lucro):'—';
-  lucroEl.style.color=m.lucro>=0?'#4ade80':'#f87171';
-  document.getElementById('h-roi').textContent=m.inv>0?m.roi.toFixed(2)+'x':'—';
-  document.getElementById('h-roi-card').className='hero-m '+(m.inv>0?(m.roi>=1?'roi-pos':'roi-neg'):'');
-  document.getElementById('m-deps').textContent=m.tD.toLocaleString('pt-BR');
-  document.getElementById('m-conv').textContent=m.conv;
-  document.getElementById('m-cftd').textContent=m.cftd>0?fmt(m.cftd):'—';
-  document.getElementById('m-cpl').textContent=m.cpl>0?fmt(m.cpl):'—';
-  const di=document.getElementById('dt-i').value,df=document.getElementById('dt-f').value;
-  document.getElementById('periodo-badge').textContent=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
-  const rows=Object.entries(m.porCasa).sort((a,b)=>b[1].receita-a[1].receita);
-  if(casaView==='grafico')renderCasasChart(m.porCasa);
-  document.querySelector('#tbl-por-casa').innerHTML=rows.length?rows.map(([nome,v])=>{
-    const pct=m.rec>0?(v.receita/m.rec*100).toFixed(1)+'%':'—';
-    return`<tr><td>${nome}</td><td style="font-weight:500">${v.qtd}</td><td class="num" style="color:#4ade80">${fmt(v.receita)}</td><td><span class="pill pg">${pct}</span></td></tr>`;
-  }).join(''):'<tr><td colspan="4" class="empty">Sem lançamentos</td></tr>';
-  renderChartInv(mI);
-  renderBreakdown();
+// CONFIG
+async function carregarConfig(){
+  const {data}=await sb.from('config').select('*');
+  if(data)data.forEach(r=>{if(r.chave==='dolar'){dolar=parseFloat(r.valor)||5.27;document.getElementById('cfg-dolar').value=dolar;const sel=document.getElementById('dolar-sel');for(let o of sel.options)if(parseFloat(o.value)===dolar)o.selected=true;}});
 }
 
-function renderBreakdown(){
-  const vis=document.getElementById('vis-sel').value;
-  const sec=document.getElementById('proj-breakdown-section');
-  if(!vis||!vis.startsWith('op:')){sec.style.display='none';return;}
-  const opNome=vis.slice(3);
-  const opProjs=projetos.filter(p=>p.op===opNome);
-  if(!opProjs.length){sec.style.display='none';return;}
-  sec.style.display='block';
-  const di=document.getElementById('dt-i').value,df=document.getElementById('dt-f').value;
-  document.getElementById('proj-breakdown-cards').innerHTML=opProjs.map(p=>{
-    const {mL,mI,mF,tDeps}=getFilteredData('proj:'+p.id);
-    const m=calcMetrics(mL,mI,mF,tDeps);
-    return`<div class="proj-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-        <span style="font-size:13px;font-weight:500;color:#ccc">${p.nome}</span>
-        <span class="pill pb" style="font-size:10px">${p.op}</span>
-      </div>
-      <div class="proj-mini">
-        <div class="pm"><div class="pm-l">Investimento</div><div class="pm-v b">${m.inv>0?fmt(m.inv):'—'}</div></div>
-        <div class="pm"><div class="pm-l">Leads</div><div class="pm-v">${m.tL.toLocaleString('pt-BR')}</div></div>
-        <div class="pm"><div class="pm-l">FTDs</div><div class="pm-v">${m.tF}</div></div>
-        <div class="pm"><div class="pm-l">Receita</div><div class="pm-v g">${m.rec>0?fmt(m.rec):'—'}</div></div>
-        <div class="pm"><div class="pm-l">Lucro</div><div class="pm-v ${m.lucro>=0?'g':'r'}">${m.inv>0?fmt(m.lucro):'—'}</div></div>
-        <div class="pm"><div class="pm-l">ROI</div><div class="pm-v ${m.roi>=1?'g':m.inv>0?'r':''}">${m.inv>0?m.roi.toFixed(2)+'x':'—'}</div></div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderChartInv(data){
-  const por={};
-  data.forEach(i=>{const d=toYMD(i.data);if(d)por[d]=(por[d]||0)+i.spend;});
-  const keys=Object.keys(por).sort().slice(-14);
-  const labels=keys.map(k=>{const p=k.split('-');return p[2]+'/'+p[1];});
-  const vals=keys.map(k=>currency==='USD'?parseFloat((por[k]/dolar).toFixed(2)):parseFloat(por[k].toFixed(2)));
-  if(invChart)invChart.destroy();
-  invChart=new Chart(document.getElementById('chart-inv'),{
-    type:'bar',
-    data:{labels:labels.length?labels:['Sem dados'],datasets:[{label:currency==='USD'?'USD':'R$',data:vals.length?vals:[0],backgroundColor:'#185FA5',borderRadius:4,barPercentage:0.6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-      x:{ticks:{autoSkip:false,font:{size:10},maxRotation:45,color:'#555'},grid:{display:false},border:{color:'#1e1e1e'}},
-      y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v.toFixed(0):'R$'+v.toFixed(0),color:'#555'},beginAtZero:true,grid:{color:'#141414'},border:{color:'#1e1e1e'}}
-    }}
-  });
-}
-
-function onVisChange(){calcular();}
-
-// FTDs
-function calcPrev(){
-  const casaId=parseInt(document.getElementById('ftd-casa').value);
-  const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
-  const data=document.getElementById('ftd-data').value;
-  const casa=casas.find(c=>c.id===casaId);
-  if(!casa||!qtd||!data){document.getElementById('p-cpa').textContent='—';document.getElementById('p-usd').textContent='—';return;}
-  const cpa=getCPAForDate(casa,data);
-  document.getElementById('p-cpa').textContent=fmtUSD(cpa)+(casa.usePeriodos?' (período)':' (padrão)');
-  document.getElementById('p-usd').textContent=fmtUSD(cpa*qtd);
-}
-
-function salvarFTD(){
-  const projId=parseInt(document.getElementById('ftd-proj').value);
-  const data=document.getElementById('ftd-data').value;
-  const casaId=parseInt(document.getElementById('ftd-casa').value);
-  const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
-  if(!projId||!data||!casaId||!qtd){alert('Preencha todos os campos');return;}
-  const proj=projetos.find(p=>p.id===projId);
-  const casa=casas.find(c=>c.id===casaId);
-  const existing=ftds.find(f=>f.projId===projId&&f.data===data&&f.casaId===casaId);
-  if(existing){if(!confirm(`Já existe lançamento para ${casa.nome} em ${data.split('-').reverse().join('/')}. Substituir?`))return;ftds=ftds.filter(f=>!(f.projId===projId&&f.data===data&&f.casaId===casaId));}
-  const cpa=getCPAForDate(casa,data);
-  const receitaUSD=cpa*qtd;
-  const receitaBRL=receitaUSD*dolar;
-  ftds.push({id:Date.now(),projId,projNome:proj?proj.nome:'—',opNome:proj?proj.op:'—',data,casaId,casaNome:casa?casa.nome:'—',casaGeo:casa?casa.geo:'',qtd,cpa,receitaUSD,receita:receitaBRL});
-  save();renderFTDs();calcular();
-  document.getElementById('ftd-qtd').value='';
-  log(`FTD: ${proj?proj.nome:'?'} · ${casa?casa.nome:'?'} · ${qtd} · ${fmtUSD(receitaUSD)}`);
-}
-
-async function atualizarDia(){
-  const data=document.getElementById('ftd-data').value;
-  if(!data){alert('Selecione uma data primeiro');return;}
-  await importarTudo();
-}
-function removerFTD(id){ftds=ftds.filter(f=>f.id!==id);save();renderFTDs();calcular();}
-
-function renderFTDs(){
-  const pf=document.getElementById('hist-proj-fil').value;
-  const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
-  const el=document.getElementById('hist-dias');
-  if(!dados.length){el.innerHTML='<div class="empty">Nenhum lançamento ainda</div>';return;}
-  const porDia={};
-  dados.forEach(f=>{if(!porDia[f.data])porDia[f.data]=[];porDia[f.data].push(f);});
-  const dias=Object.keys(porDia).sort().reverse();
-  el.innerHTML=dias.map(dia=>{
-    const items=porDia[dia];
-    const totalUSD=items.reduce((s,f)=>s+(f.receitaUSD||0),0);
-    const totalBRL=items.reduce((s,f)=>s+f.receita,0);
-    const totalFTD=items.reduce((s,f)=>s+f.qtd,0);
-    return`<div class="day-row">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div><span style="font-size:13px;font-weight:500;color:#ccc">${dia.split('-').reverse().join('/')}</span>
-          <span class="pill p0" style="margin-left:8px;font-size:10px">${totalFTD} FTDs</span></div>
-        <div style="text-align:right">
-          <div style="font-size:13px;color:#4ade80;font-weight:500">${fmtUSD(totalUSD)}</div>
-          <div style="font-size:11px;color:#555">${fmtBRL(totalBRL)}</div>
-        </div>
-      </div>
-      <table style="font-size:12px">
-        <thead><tr><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA</th><th>USD</th><th>BRL</th><th></th></tr></thead>
-        <tbody>${items.map(f=>`<tr>
-          <td><span class="pill pb" style="font-size:10px">${f.projNome}</span></td>
-          <td>${f.casaNome}${f.casaGeo?` <span style="color:#555;font-size:11px">(${f.casaGeo})</span>`:''}</td>
-          <td style="font-weight:500">${f.qtd}</td>
-          <td class="num">${fmtUSD(f.cpa)}</td>
-          <td class="num" style="color:#4ade80">${fmtUSD(f.receitaUSD||0)}</td>
-          <td class="num" style="color:#888">${fmtBRL(f.receita)}</td>
-          <td><button class="btn bs bd" onclick="removerFTD(${f.id})">×</button></td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>`;
-  }).join('');
-}
-
-function exportFTDsExcel(){
-  if(!ftds.length){alert('Nenhum lançamento');return;}
-  const pf=document.getElementById('hist-proj-fil').value;
-  const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
-  const rows=[['Data','Operação','Projeto','Casa','Geo','FTDs','CPA (USD)','Receita USD','Receita BRL'],...dados.map(f=>[
-    f.data.split('-').reverse().join('/'),f.opNome||'',f.projNome,f.casaNome,f.casaGeo||'',
-    f.qtd,f.cpa,(f.receitaUSD||0).toFixed(2),f.receita.toFixed(2)
-  ])];
-  const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[{wch:12},{wch:14},{wch:18},{wch:14},{wch:10},{wch:8},{wch:10},{wch:14},{wch:14}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'FTDs');
-  XLSX.writeFile(wb,'ftds-lancamentos.xlsx');
-  log('Excel FTDs exportado');
+async function salvarDolarDB(val){
+  dolar=val||5.27;
+  await sb.from('config').upsert({chave:'dolar',valor:String(dolar)});
+  renderCasas();calcular();
+  log('Cotação: R$ '+dolar.toFixed(2));
 }
 
 // CASAS
-function addCasa(){
+async function carregarCasas(){
+  const {data}=await sb.from('casas').select('*').order('nome');
+  if(data)casas=data.map(c=>({...c,usePeriodos:c.use_periodos,periodos:c.periodos||[]}));
+  renderCasas();
+}
+
+async function addCasa(){
   const nome=document.getElementById('c-nome').value.trim();
   if(!nome){alert('Informe o nome');return;}
-  casas.push({id:Date.now(),nome,cpa:parseFloat(document.getElementById('c-cpa').value)||0,geo:document.getElementById('c-geo').value.trim(),usePeriodos:false,periodos:[]});
-  save();renderCasas();updateSelects();clearCasa();log('Casa: '+nome);
+  const {data,error}=await sb.from('casas').insert({nome,cpa:parseFloat(document.getElementById('c-cpa').value)||0,geo:document.getElementById('c-geo').value.trim(),ativo:true,use_periodos:false,periodos:[]}).select().single();
+  if(error){alert('Erro: '+error.message);return;}
+  casas.push({...data,usePeriodos:false,periodos:[]});
+  renderCasas();updateSelects();clearCasa();log('Casa: '+nome);
 }
+
+async function removerCasa(id){
+  const c=casas.find(x=>x.id===id);if(!confirm('Remover '+(c?c.nome:'?')+'?'))return;
+  await sb.from('casas').delete().eq('id',id);
+  casas=casas.filter(x=>x.id!==id);renderCasas();updateSelects();
+}
+
+async function toggleCasaAtiva(id){
+  const c=casas.find(x=>x.id===id);if(!c)return;
+  const novoAtivo=c.ativo===false?true:false;
+  await sb.from('casas').update({ativo:novoAtivo}).eq('id',id);
+  c.ativo=novoAtivo;renderCasas();updateSelects();
+  log((novoAtivo?'Casa ativada':'Casa ocultada')+': '+c.nome);
+}
+
 function clearCasa(){['c-nome','c-cpa','c-geo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';})}
-function removerCasa(id){const c=casas.find(x=>x.id===id);if(!confirm('Remover '+(c?c.nome:'?')+'?'))return;casas=casas.filter(x=>x.id!==id);save();renderCasas();updateSelects();}
 
 function abrirEditCasa(id){
   const c=casas.find(x=>x.id===id);if(!c)return;
@@ -848,36 +588,37 @@ function abrirEditCasa(id){
   document.getElementById('ec-periodos-section').style.display=c.usePeriodos?'block':'none';
   document.getElementById('modal-casa').style.display='flex';
 }
+
 function togglePeriodos(){
   const on=document.getElementById('ec-periodos-toggle').checked;
   document.getElementById('ec-periodos-section').style.display=on?'block':'none';
   if(on&&document.getElementById('ec-periodos-list').children.length===0)addPeriodo();
 }
+
 function renderPeriodosForm(periodos){
   const el=document.getElementById('ec-periodos-list');el.innerHTML='';
   periodos.forEach(p=>{
     const div=document.createElement('div');div.className='periodo-row';
-    div.innerHTML=`
-      <div><label>CPA (USD)</label><input type="number" class="per-cpa" value="${p.cpa||''}" placeholder="Ex: 25"/></div>
-      <div><label>De (data)</label><input type="date" class="per-from" value="${p.from||''}"/></div>
+    div.innerHTML=`<div><label>CPA (USD)</label><input type="number" class="per-cpa" value="${p.cpa||''}" placeholder="Ex: 25"/></div>
+      <div><label>De</label><input type="date" class="per-from" value="${p.from||''}"/></div>
       <div><label>Até (vazio = sem fim)</label><input type="date" class="per-to" value="${p.to||''}"/></div>
       <div style="display:flex;align-items:flex-end"><button class="btn bs bd" onclick="this.closest('.periodo-row').remove()">×</button></div>`;
     el.appendChild(div);
   });
 }
+
 function addPeriodo(){
   const el=document.getElementById('ec-periodos-list');
   const div=document.createElement('div');div.className='periodo-row';
-  div.innerHTML=`
-    <div><label>CPA (USD)</label><input type="number" class="per-cpa" placeholder="Ex: 22"/></div>
-    <div><label>De (data)</label><input type="date" class="per-from"/></div>
+  div.innerHTML=`<div><label>CPA (USD)</label><input type="number" class="per-cpa" placeholder="Ex: 22"/></div>
+    <div><label>De</label><input type="date" class="per-from"/></div>
     <div><label>Até (vazio = sem fim)</label><input type="date" class="per-to"/></div>
     <div style="display:flex;align-items:flex-end"><button class="btn bs bd" onclick="this.closest('.periodo-row').remove()">×</button></div>`;
   el.appendChild(div);
 }
-function salvarEditCasa(){
+
+async function salvarEditCasa(){
   if(!editCasaId)return;
-  const idx=casas.findIndex(c=>c.id===editCasaId);if(idx<0)return;
   const usePeriodos=document.getElementById('ec-periodos-toggle').checked;
   const periodos=[];
   document.querySelectorAll('#ec-periodos-list .periodo-row').forEach(row=>{
@@ -886,27 +627,25 @@ function salvarEditCasa(){
     const to=row.querySelector('.per-to').value;
     if(cpa&&from)periodos.push({cpa,from,to});
   });
-  casas[idx]={...casas[idx],nome:document.getElementById('ec-nome').value.trim(),geo:document.getElementById('ec-geo').value.trim(),cpa:parseFloat(document.getElementById('ec-cpa').value)||0,usePeriodos,periodos};
-  save();renderCasas();updateSelects();closeModal('modal-casa');
-  log('Casa editada: '+casas[idx].nome);
+  const updates={nome:document.getElementById('ec-nome').value.trim(),geo:document.getElementById('ec-geo').value.trim(),cpa:parseFloat(document.getElementById('ec-cpa').value)||0,use_periodos:usePeriodos,periodos};
+  await sb.from('casas').update(updates).eq('id',editCasaId);
+  const idx=casas.findIndex(c=>c.id===editCasaId);
+  if(idx>=0)casas[idx]={...casas[idx],...updates,usePeriodos,periodos};
+  renderCasas();updateSelects();closeModal('modal-casa');
+  log('Casa editada: '+updates.nome);
 }
 
 function renderCasas(){
   document.getElementById('casas-count').textContent=casas.length;
   const el=document.getElementById('lista-casas');
   if(!casas.length){el.innerHTML='<div class="empty">Nenhuma casa</div>';return;}
-  el.innerHTML=casas.map(c=>`<div style="background:#0d0d0d;border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #1e1e1e">
+  el.innerHTML=casas.map(c=>`<div style="background:#0d0d0d;border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #1e1e1e;opacity:${c.ativo===false?0.45:1}">
     <div>
-      <div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}</div>
-      <div style="font-size:12px;color:#555;margin-top:2px">
-        ${c.usePeriodos&&c.periodos&&c.periodos.length
-          ?c.periodos.map(p=>`${fmtUSD(p.cpa)} (${p.from.split('-').reverse().join('/')}${p.to?' → '+p.to.split('-').reverse().join('/'):''})`).join(' · ')
-          :fmtUSD(c.cpa)+'/FTD = '+fmtBRL(c.cpa*dolar)}
-        ${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}
-      </div>
+      <div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}${c.ativo===false?' <span class="pill p0" style="font-size:10px">oculta</span>':''}</div>
+      <div style="font-size:12px;color:#555;margin-top:2px">${c.usePeriodos&&c.periodos&&c.periodos.length?c.periodos.map(p=>`$${p.cpa} (${p.from}${p.to?' → '+p.to:''})`).join(' · '):'$'+c.cpa+'/FTD = R$'+(c.cpa*dolar).toFixed(2)}${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}</div>
     </div>
     <div style="display:flex;gap:6px">
-      <button class="btn bs" onclick="toggleCasaAtiva(${c.id})" title="${c.ativo===false?'Ativar':'Ocultar'}" style="padding:5px 10px;font-size:13px;opacity:${c.ativo===false?0.35:1}" title="${c.ativo===false?'Ativar casa':'Ocultar casa'}">&#9728;</button>
+      <button class="btn bs" onclick="toggleCasaAtiva(${c.id})" title="${c.ativo===false?'Ativar':'Ocultar'}" style="padding:5px 10px">&#9728;</button>
       <button class="btn bs" onclick="abrirEditCasa(${c.id})">Editar</button>
       <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
     </div>
@@ -914,14 +653,32 @@ function renderCasas(){
 }
 
 // PROJETOS
-function addProjeto(){
+async function carregarProjetos(){
+  let query=sb.from('projetos').select('*').order('operacao');
+  if(currentUserData?.role==='gestor')query=query.eq('operacao',currentUserData.operacao);
+  const {data}=await query;
+  if(data)projetos=data.map(p=>({...p,op:p.operacao,leadsId:p.leads_id,leadsAba:p.leads_aba,contas:p.contas||[]}));
+  renderProjetos();
+}
+
+async function addProjeto(){
   const nome=document.getElementById('p-nome').value.trim();
   const op=document.getElementById('op-nome').value.trim();
   if(!nome||!op){alert('Preencha operação e projeto');return;}
   const leadsIdRaw=document.getElementById('p-leads-id').value.trim();
-  projetos.push({id:Date.now(),nome,op,leadsId:leadsIdRaw?extractId(leadsIdRaw):'',leadsAba:document.getElementById('p-leads-aba').value.trim(),contas:getContasFromForm('contas-anuncio-form')});
-  save();renderProjetos();updateSelects();clearProjeto();log('Projeto: '+nome);
+  const contas=getContasFromForm('contas-anuncio-form');
+  const {data,error}=await sb.from('projetos').insert({nome,operacao:op,leads_id:leadsIdRaw?extractId(leadsIdRaw):'',leads_aba:document.getElementById('p-leads-aba').value.trim(),contas}).select().single();
+  if(error){alert('Erro: '+error.message);return;}
+  projetos.push({...data,op:data.operacao,leadsId:data.leads_id,leadsAba:data.leads_aba,contas:data.contas||[]});
+  renderProjetos();updateSelects();clearProjeto();log('Projeto: '+nome);
 }
+
+async function removerProjeto(id){
+  const p=projetos.find(x=>x.id===id);if(!confirm('Remover '+(p?p.nome:'?')+'?'))return;
+  await sb.from('projetos').delete().eq('id',id);
+  projetos=projetos.filter(x=>x.id!==id);renderProjetos();updateSelects();
+}
+
 function clearProjeto(){
   ['p-nome','op-nome','p-leads-id','p-leads-aba'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('leads-test-status').style.display='none';
@@ -936,7 +693,6 @@ function clearProjeto(){
     <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span></div>
   </div>`;
 }
-function removerProjeto(id){const p=projetos.find(x=>x.id===id);if(!confirm('Remover '+(p?p.nome:'?')+'?'))return;projetos=projetos.filter(x=>x.id!==id);save();renderProjetos();updateSelects();}
 
 function abrirEditProj(id){
   const p=projetos.find(x=>x.id===id);if(!p)return;
@@ -965,12 +721,16 @@ function abrirEditProj(id){
   if(!p.contas||!p.contas.length)addContaBlock('ep-contas-form');
   document.getElementById('modal-proj').style.display='flex';
 }
-function salvarEditProj(){
+
+async function salvarEditProj(){
   if(!editProjId)return;
-  const idx=projetos.findIndex(p=>p.id===editProjId);if(idx<0)return;
-  projetos[idx]={...projetos[idx],op:document.getElementById('ep-op').value.trim(),nome:document.getElementById('ep-nome').value.trim(),leadsId:extractId(document.getElementById('ep-leads-id').value.trim()),leadsAba:document.getElementById('ep-leads-aba').value.trim(),contas:getContasFromForm('ep-contas-form')};
-  save();renderProjetos();updateSelects();closeModal('modal-proj');
-  log('Projeto editado: '+projetos[idx].nome);
+  const contas=getContasFromForm('ep-contas-form');
+  const updates={operacao:document.getElementById('ep-op').value.trim(),nome:document.getElementById('ep-nome').value.trim(),leads_id:extractId(document.getElementById('ep-leads-id').value.trim()),leads_aba:document.getElementById('ep-leads-aba').value.trim(),contas};
+  await sb.from('projetos').update(updates).eq('id',editProjId);
+  const idx=projetos.findIndex(p=>p.id===editProjId);
+  if(idx>=0)projetos[idx]={...projetos[idx],...updates,op:updates.operacao,leadsId:updates.leads_id,leadsAba:updates.leads_aba};
+  renderProjetos();updateSelects();closeModal('modal-proj');
+  log('Projeto editado');
 }
 
 function renderProjetos(){
@@ -982,28 +742,241 @@ function renderProjetos(){
   el.innerHTML=Object.entries(porOp).map(([op,ps])=>`
     <div style="margin-bottom:1rem">
       <div style="font-size:11px;font-weight:500;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Operação: ${op}</div>
-      ${ps.map(p=>{
-        const lc=leads.filter(l=>l.projId===p.id).length;
-        return`<div class="sbox">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
-            <div><div style="font-size:13px;font-weight:500;color:#e8e8e8">${p.nome}</div>
-            ${lc?`<div style="font-size:11px;color:#444;margin-top:1px">${lc} leads importados</div>`:''}
-            </div>
-            <div style="display:flex;gap:6px">
-              <button class="btn bs" onclick="abrirEditProj(${p.id})">Editar</button>
-              <button class="btn bs bd" onclick="removerProjeto(${p.id})">Remover</button>
-            </div>
+      ${ps.map(p=>`<div class="sbox">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+          <div><div style="font-size:13px;font-weight:500;color:#e8e8e8">${p.nome}</div></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn bs" onclick="abrirEditProj(${p.id})">Editar</button>
+            <button class="btn bs bd" onclick="removerProjeto(${p.id})">Remover</button>
           </div>
-          <div style="font-size:11px;color:#444;display:grid;gap:3px">
-            <div>Leads: ${p.leadsId&&p.leadsAba?`<span style="color:#4ade80">Aba "${p.leadsAba}"</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
-            <div>Contas ads: ${p.contas&&p.contas.length?`<span style="color:#4ade80">${p.contas.length} conta(s) — ${p.contas.map(c=>'"'+c.aba+'"'+(c.moeda==='USD'?' [USD]':'')).join(', ')}</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
-          </div>
-        </div>`;
-      }).join('')}
+        </div>
+        <div style="font-size:11px;color:#444;display:grid;gap:3px">
+          <div>Leads: ${p.leadsId&&p.leadsAba?`<span style="color:#4ade80">Aba "${p.leadsAba}"</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
+          <div>Contas ads: ${p.contas&&p.contas.length?`<span style="color:#4ade80">${p.contas.length} conta(s)</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
+        </div>
+      </div>`).join('')}
     </div>`).join('');
 }
 
-let casaChart=null,casaView='lista';
+// FTDs
+async function carregarFTDs(){
+  let query=sb.from('ftds').select('*').order('data',{ascending:false});
+  if(currentUserData?.role==='gestor')query=query.eq('op_nome',currentUserData.operacao);
+  const {data}=await query;
+  if(data)ftds=data.map(f=>({...f,projId:f.proj_id,projNome:f.proj_nome,opNome:f.op_nome,casaId:f.casa_id,casaNome:f.casa_nome,casaGeo:f.casa_geo,receitaUSD:f.receita_usd,receita:f.receita_brl}));
+  renderFTDs();
+}
+
+async function salvarFTD(){
+  const projId=parseInt(document.getElementById('ftd-proj').value);
+  const data=document.getElementById('ftd-data').value;
+  const casaId=parseInt(document.getElementById('ftd-casa').value);
+  const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
+  if(!projId||!data||!casaId||!qtd){alert('Preencha todos os campos');return;}
+  const proj=projetos.find(p=>p.id===projId);
+  const casa=casas.find(c=>c.id===casaId);
+  const cpa=getCPAForDate(casa,data);
+  const receitaUSD=cpa*qtd;
+  const receitaBRL=receitaUSD*dolar;
+
+  const btn=document.getElementById('btn-salvar-ftd');
+  btn.textContent='Salvando...';btn.disabled=true;
+
+  // upsert (substitui se já existe mesmo proj+data+casa)
+  const {error}=await sb.from('ftds').upsert({
+    proj_id:projId,proj_nome:proj?proj.nome:'—',op_nome:proj?proj.op:'—',
+    data,casa_id:casaId,casa_nome:casa?casa.nome:'—',casa_geo:casa?casa.geo:'',
+    qtd,cpa,receita_usd:receitaUSD,receita_brl:receitaBRL,dolar_cotacao:dolar
+  },{onConflict:'proj_id,data,casa_id'});
+
+  btn.textContent='Salvar lançamento';btn.disabled=false;
+  if(error){alert('Erro ao salvar: '+error.message);return;}
+  await carregarFTDs();calcular();
+  document.getElementById('ftd-qtd').value='';
+  log(`FTD: ${proj?proj.nome:'?'} · ${casa?casa.nome:'?'} · ${qtd} · $${receitaUSD.toFixed(2)}`);
+}
+
+async function removerFTD(id){
+  await sb.from('ftds').delete().eq('id',id);
+  ftds=ftds.filter(f=>f.id!==id);renderFTDs();calcular();
+}
+
+// GESTORES (admin only)
+async function carregarGestores(){
+  const {data}=await sb.from('usuarios').select('*').eq('role','gestor').order('nome');
+  const el=document.getElementById('lista-gestores');
+  document.getElementById('gestores-count').textContent=data?data.length:0;
+  if(!data||!data.length){el.innerHTML='<div class="empty">Nenhum gestor</div>';return;}
+  el.innerHTML=data.map(g=>`<div class="sbox" style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:13px;font-weight:500;color:#e8e8e8">${g.nome}</div>
+      <div style="font-size:12px;color:#555">${g.email} · Operação: <span style="color:#60a5fa">${g.operacao||'—'}</span></div>
+    </div>
+  </div>`).join('');
+}
+
+async function criarGestor(){
+  const nome=document.getElementById('g-nome').value.trim();
+  const email=document.getElementById('g-email').value.trim();
+  const senha=document.getElementById('g-senha').value;
+  const op=document.getElementById('g-op').value;
+  const st=document.getElementById('gestor-status');
+  if(!nome||!email||!senha||!op){st.textContent='Preencha todos os campos';st.style.color='#f87171';return;}
+  const btn=document.getElementById('btn-criar-gestor');
+  btn.textContent='Criando...';btn.disabled=true;
+  st.textContent='';
+
+  // Create user via Supabase Admin API (using service role would be ideal, but we use signUp here)
+  const {data,error}=await sb.auth.signUp({email,password:senha,options:{data:{nome}}});
+  btn.textContent='+ Criar acesso';btn.disabled=false;
+
+  if(error){st.textContent='Erro: '+error.message;st.style.color='#f87171';return;}
+
+  if(data.user){
+    await sb.from('usuarios').insert({id:data.user.id,nome,email,role:'gestor',operacao:op});
+    st.textContent='✓ Acesso criado! O gestor receberá um email de confirmação.';
+    st.style.color='#4ade80';
+    ['g-nome','g-email','g-senha'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('g-op').value='';
+    await carregarGestores();
+  }
+}
+
+// IMPORTAR SHEETS
+async function importarTudo(){
+  const st=document.getElementById('import-status');
+  st.innerHTML='<span class="spin"></span>Importando...';
+  log('Importando...');
+  leads=[];investData=[];
+  let lT=0,iT=0;
+  const projParaImportar=currentUserData?.role==='gestor'
+    ?projetos.filter(p=>p.op===currentUserData.operacao)
+    :projetos;
+
+  for(const p of projParaImportar){
+    if(p.leadsId&&p.leadsAba){
+      try{
+        const resp=await fetch(buildURL(p.leadsId,p.leadsAba));
+        if(!resp.ok)throw new Error('HTTP '+resp.status);
+        const rows=parseCSV(await resp.text());
+        rows.forEach(r=>{
+          if(!r[0])return;
+          const dataEntrada=(r[1]||'').trim();
+          const dataDeposito=(r[2]||'').trim();
+          const isDate=v=>/\d{1,2}\/\d{1,2}\/\d{4}/.test(v)||/\d{4}-\d{2}-\d{2}/.test(v);
+          const ftdReal=!!(dataDeposito&&isDate(dataDeposito));
+          leads.push({tid:r[0],data:dataEntrada,deposito:dataDeposito,dataDeposito:toYMD(dataDeposito),ftdReal,projId:p.id,projNome:p.nome,opNome:p.op});
+          lT++;
+        });
+        log(`Leads "${p.nome}": ${rows.length} linhas`);
+      }catch(e){log('Erro leads '+p.nome+': '+e.message);}
+    }
+    for(const conta of (p.contas||[])){
+      if(!conta.id||!conta.aba)continue;
+      try{
+        const resp=await fetch(buildURL(conta.id,conta.aba));
+        if(!resp.ok)throw new Error('HTTP '+resp.status);
+        const rows=parseCSV(await resp.text());
+        const filtro=(conta.filtro||'').toLowerCase();
+        const moeda=conta.moeda||'BRL';
+        let iP=0;
+        rows.forEach(r=>{
+          const camp=(r[1]||'').toLowerCase();
+          if(filtro&&!camp.includes(filtro))return;
+          const raw=(r[2]||'').replace(/[^0-9.,\-]/g,'').replace(',','.');
+          let spend=parseFloat(raw)||0;
+          if(!spend)return;
+          if(moeda==='USD')spend=spend*dolar;
+          investData.push({data:r[0]||'',spend,projId:p.id,projNome:p.nome,opNome:p.op});
+          iT+=spend;iP+=spend;
+        });
+        log(`Invest "${p.nome}"/"${conta.aba}" [${moeda}]: R$ ${iP.toFixed(2)}`);
+      }catch(e){log('Erro invest: '+e.message);}
+    }
+  }
+  document.getElementById('last-up').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+  st.textContent=`${lT} leads · R$ ${iT.toFixed(2)}`;
+  calcular();
+  log('Concluído — '+lT+' leads, R$ '+iT.toFixed(2));
+}
+
+// CALCULAR
+function getVisValue(){
+  const vs=document.getElementById('vis-sel');
+  if(currentUserData?.role==='gestor')return'op:'+currentUserData.operacao;
+  return vs.value;
+}
+
+function getFilteredData(visOverride){
+  const di=document.getElementById('dt-i').value;
+  const df=document.getElementById('dt-f').value;
+  const vis=visOverride!==undefined?visOverride:getVisValue();
+  let mL=leads,mI=investData,mF=ftds;
+  if(vis){
+    if(vis.startsWith('op:')){const o=vis.slice(3);mL=mL.filter(l=>l.opNome===o);mI=mI.filter(i=>i.opNome===o);mF=mF.filter(f=>f.opNome===o);}
+    else{const id=parseInt(vis.replace('proj:',''));mL=mL.filter(l=>l.projId===id);mI=mI.filter(i=>i.projId===id);mF=mF.filter(f=>f.projId===id);}
+  }
+  if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
+  if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
+  let mDeps=leads.filter(l=>l.ftdReal);
+  if(vis){
+    if(vis.startsWith('op:')){const o=vis.slice(3);mDeps=mDeps.filter(l=>l.opNome===o);}
+    else{const id=parseInt(vis.replace('proj:',''));mDeps=mDeps.filter(l=>l.projId===id);}
+  }
+  return{mL,mI,mF,tDeps:mDeps.length};
+}
+
+function calcMetrics(mL,mI,mF,tDeps){
+  const tL=mL.length,tF=mF.reduce((s,f)=>s+f.qtd,0);
+  const inv=mI.reduce((s,i)=>s+i.spend,0);
+  const conv=tL>0?(tF/tL*100).toFixed(1)+'%':'—';
+  const porCasa={};
+  mF.forEach(f=>{if(!porCasa[f.casaNome])porCasa[f.casaNome]={qtd:0,receita:0};porCasa[f.casaNome].qtd+=f.qtd;porCasa[f.casaNome].receita+=f.receita;});
+  const rec=Object.values(porCasa).reduce((s,v)=>s+v.receita,0);
+  const lucro=rec-inv;const roi=inv>0?rec/inv:0;const cftd=tF>0?inv/tF:0;const cpl=tL>0?inv/tL:0;
+  return{tL,tD:tDeps!==undefined?tDeps:0,tF,inv,conv,porCasa,rec,lucro,roi,cftd,cpl};
+}
+
+function setCurrency(c){
+  currency=c;
+  document.getElementById('btn-brl').classList.toggle('active',c==='BRL');
+  document.getElementById('btn-usd').classList.toggle('active',c==='USD');
+  calcular();
+}
+
+function fmt(v){
+  if(currency==='USD')return'$ '+(v/dolar).toFixed(2);
+  return'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtBRL(v){return'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtUSD(v){return'$ '+parseFloat(v).toFixed(2)}
+
+function calcular(){
+  const {mL,mI,mF,tDeps}=getFilteredData();
+  const m=calcMetrics(mL,mI,mF,tDeps);
+  document.getElementById('h-inv').textContent=m.inv>0?fmt(m.inv):'—';
+  document.getElementById('h-leads').textContent=m.tL.toLocaleString('pt-BR');
+  document.getElementById('h-ftds').textContent=m.tF.toLocaleString('pt-BR');
+  document.getElementById('h-rec').textContent=m.rec>0?fmt(m.rec):'—';
+  const le=document.getElementById('h-lucro');le.textContent=m.inv>0?fmt(m.lucro):'—';le.style.color=m.lucro>=0?'#4ade80':'#f87171';
+  document.getElementById('h-roi').textContent=m.inv>0?m.roi.toFixed(2)+'x':'—';
+  document.getElementById('h-roi-card').className='hero-m '+(m.inv>0?(m.roi>=1?'roi-pos':'roi-neg'):'');
+  document.getElementById('m-deps').textContent=m.tD.toLocaleString('pt-BR');
+  document.getElementById('m-conv').textContent=m.conv;
+  document.getElementById('m-cftd').textContent=m.cftd>0?fmt(m.cftd):'—';
+  document.getElementById('m-cpl').textContent=m.cpl>0?fmt(m.cpl):'—';
+  const di=document.getElementById('dt-i').value,df=document.getElementById('dt-f').value;
+  document.getElementById('periodo-badge').textContent=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
+  const rows=Object.entries(m.porCasa).sort((a,b)=>b[1].receita-a[1].receita);
+  document.querySelector('#tbl-por-casa').innerHTML=rows.length?rows.map(([nome,v])=>{
+    const pct=m.rec>0?(v.receita/m.rec*100).toFixed(1)+'%':'—';
+    return`<tr><td>${nome}</td><td style="font-weight:500">${v.qtd}</td><td class="num" style="color:#4ade80">${fmt(v.receita)}</td><td><span class="pill pg">${pct}</span></td></tr>`;
+  }).join(''):'<tr><td colspan="4" class="empty">Sem lançamentos</td></tr>';
+  if(casaView==='grafico')renderCasasChart(m.porCasa);
+  renderChartInv(mI);
+  renderBreakdown();
+}
+
 function setCasaView(v){
   casaView=v;
   document.getElementById('btn-lista').classList.toggle('active',v==='lista');
@@ -1011,59 +984,272 @@ function setCasaView(v){
   document.getElementById('casa-lista-view').style.display=v==='lista'?'block':'none';
   document.getElementById('casa-grafico-view').style.display=v==='grafico'?'block':'none';
 }
-function toggleCasaAtiva(id){
-  const c=casas.find(x=>x.id===id);if(!c)return;
-  c.ativo=c.ativo===false?true:false;
-  save();renderCasas();updateSelects();
-  log((c.ativo?'Casa ativada':'Casa ocultada')+': '+c.nome);
-}
+
 function renderCasasChart(porCasa){
   const labels=Object.keys(porCasa);
   const vals=labels.map(k=>parseFloat((porCasa[k].receita/(currency==='USD'?dolar:1)).toFixed(2)));
   if(casaChart)casaChart.destroy();
   casaChart=new Chart(document.getElementById('chart-casas'),{
-    type:'bar',
-    data:{labels,datasets:[{label:'Receita',data:vals,backgroundColor:'#185FA5',borderRadius:4,barPercentage:0.6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{font:{size:10},color:'#555'},grid:{display:false},border:{color:'#1e1e1e'}},
-        y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v:'R$'+v,color:'#555'},beginAtZero:true,grid:{color:'#141414'},border:{color:'#1e1e1e'}}}}
+    type:'bar',data:{labels,datasets:[{label:'Receita',data:vals,backgroundColor:'#185FA5',borderRadius:4,barPercentage:0.6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},color:'#555'},grid:{display:false},border:{color:'#1e1e1e'}},y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v:'R$'+v,color:'#555'},beginAtZero:true,grid:{color:'#141414'},border:{color:'#1e1e1e'}}}}
   });
 }
+
+function renderBreakdown(){
+  const vis=getVisValue();
+  const sec=document.getElementById('proj-breakdown-section');
+  if(!vis||!vis.startsWith('op:')){sec.style.display='none';return;}
+  const opNome=vis.slice(3);
+  const opProjs=projetos.filter(p=>p.op===opNome);
+  if(!opProjs.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  document.getElementById('proj-breakdown-cards').innerHTML=opProjs.map(p=>{
+    const {mL,mI,mF,tDeps}=getFilteredData('proj:'+p.id);
+    const m=calcMetrics(mL,mI,mF,tDeps);
+    return`<div class="proj-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <span style="font-size:13px;font-weight:500;color:#ccc">${p.nome}</span>
+        <span class="pill pb" style="font-size:10px">${p.op}</span>
+      </div>
+      <div class="proj-mini">
+        <div class="pm"><div class="pm-l">Investimento</div><div class="pm-v b">${m.inv>0?fmt(m.inv):'—'}</div></div>
+        <div class="pm"><div class="pm-l">Leads</div><div class="pm-v">${m.tL.toLocaleString('pt-BR')}</div></div>
+        <div class="pm"><div class="pm-l">FTDs</div><div class="pm-v">${m.tF}</div></div>
+        <div class="pm"><div class="pm-l">Receita</div><div class="pm-v g">${m.rec>0?fmt(m.rec):'—'}</div></div>
+        <div class="pm"><div class="pm-l">Lucro</div><div class="pm-v ${m.lucro>=0?'g':'r'}">${m.inv>0?fmt(m.lucro):'—'}</div></div>
+        <div class="pm"><div class="pm-l">ROI</div><div class="pm-v ${m.roi>=1?'g':m.inv>0?'r':''}">${m.inv>0?m.roi.toFixed(2)+'x':'—'}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderChartInv(data){
+  const por={};data.forEach(i=>{const d=toYMD(i.data);if(d)por[d]=(por[d]||0)+i.spend;});
+  const keys=Object.keys(por).sort().slice(-14);
+  const labels=keys.map(k=>{const p=k.split('-');return p[2]+'/'+p[1];});
+  const vals=keys.map(k=>currency==='USD'?parseFloat((por[k]/dolar).toFixed(2)):parseFloat(por[k].toFixed(2)));
+  if(invChart)invChart.destroy();
+  invChart=new Chart(document.getElementById('chart-inv'),{
+    type:'bar',data:{labels:labels.length?labels:['Sem dados'],datasets:[{label:'',data:vals.length?vals:[0],backgroundColor:'#185FA5',borderRadius:4,barPercentage:0.6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{autoSkip:false,font:{size:10},maxRotation:45,color:'#555'},grid:{display:false},border:{color:'#1e1e1e'}},y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v.toFixed(0):'R$'+v.toFixed(0),color:'#555'},beginAtZero:true,grid:{color:'#141414'},border:{color:'#1e1e1e'}}}}
+  });
+}
+
+function renderFTDs(){
+  const pf=document.getElementById('hist-proj-fil').value;
+  const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
+  const el=document.getElementById('hist-dias');
+  if(!dados.length){el.innerHTML='<div class="empty">Nenhum lançamento ainda</div>';return;}
+  const porDia={};
+  dados.forEach(f=>{if(!porDia[f.data])porDia[f.data]=[];porDia[f.data].push(f);});
+  const dias=Object.keys(porDia).sort().reverse();
+  el.innerHTML=dias.map(dia=>{
+    const items=porDia[dia];
+    const tUSD=items.reduce((s,f)=>s+(f.receitaUSD||0),0);
+    const tBRL=items.reduce((s,f)=>s+f.receita,0);
+    const tFTD=items.reduce((s,f)=>s+f.qtd,0);
+    return`<div class="day-row">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div><span style="font-size:13px;font-weight:500;color:#ccc">${dia.split('-').reverse().join('/')}</span>
+          <span class="pill p0" style="margin-left:8px;font-size:10px">${tFTD} FTDs</span></div>
+        <div style="text-align:right"><div style="font-size:13px;color:#4ade80;font-weight:500">${fmtUSD(tUSD)}</div><div style="font-size:11px;color:#555">${fmtBRL(tBRL)}</div></div>
+      </div>
+      <table style="font-size:12px">
+        <thead><tr><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA</th><th>USD</th><th>BRL</th><th></th></tr></thead>
+        <tbody>${items.map(f=>`<tr>
+          <td><span class="pill pb" style="font-size:10px">${f.projNome}</span></td>
+          <td>${f.casaNome}${f.casaGeo?` <span style="color:#555;font-size:11px">(${f.casaGeo})</span>`:''}</td>
+          <td style="font-weight:500">${f.qtd}</td><td class="num">${fmtUSD(f.cpa)}</td>
+          <td class="num" style="color:#4ade80">${fmtUSD(f.receitaUSD||0)}</td>
+          <td class="num" style="color:#888">${fmtBRL(f.receita)}</td>
+          <td><button class="btn bs bd" onclick="removerFTD(${f.id})">×</button></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
+
+function exportFTDsExcel(){
+  if(!ftds.length){alert('Nenhum lançamento');return;}
+  const pf=document.getElementById('hist-proj-fil').value;
+  const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
+  const rows=[['Data','Operação','Projeto','Casa','Geo','FTDs','CPA (USD)','Receita USD','Receita BRL'],...dados.map(f=>[String(f.data).split('-').reverse().join('/'),f.opNome||'',f.projNome,f.casaNome,f.casaGeo||'',f.qtd,f.cpa,(f.receitaUSD||0).toFixed(2),f.receita.toFixed(2)])];
+  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:12},{wch:14},{wch:18},{wch:14},{wch:10},{wch:8},{wch:10},{wch:14},{wch:14}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'FTDs');XLSX.writeFile(wb,'ftds-lancamentos.xlsx');log('Excel exportado');
+}
+
+async function atualizarDia(){await importarTudo();}
+
+function calcPrev(){
+  const casaId=parseInt(document.getElementById('ftd-casa').value);
+  const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
+  const data=document.getElementById('ftd-data').value;
+  const casa=casas.find(c=>c.id===casaId);
+  if(!casa||!qtd||!data){document.getElementById('p-cpa').textContent='—';document.getElementById('p-usd').textContent='—';return;}
+  const cpa=getCPAForDate(casa,data);
+  document.getElementById('p-cpa').textContent=fmtUSD(cpa)+(casa.usePeriodos?' (período)':' (padrão)');
+  document.getElementById('p-usd').textContent=fmtUSD(cpa*qtd);
+}
+
+function getCPAForDate(casa,dateStr){
+  if(!casa)return 0;
+  if(casa.usePeriodos&&casa.periodos&&casa.periodos.length){
+    const ymd=toYMD(dateStr)||dateStr;
+    const match=casa.periodos.find(p=>{const from=p.from||'';const to=p.to||'';return ymd>=from&&(!to||ymd<=to);});
+    if(match)return parseFloat(match.cpa)||0;
+  }
+  return parseFloat(casa.cpa)||0;
+}
+
+// SHEETS UTILS
+async function testarSheet(idField,abaField,statusField){
+  const idRaw=document.getElementById(idField).value.trim();
+  const abaNome=document.getElementById(abaField).value.trim();
+  if(!idRaw||!abaNome){setStatus(statusField,'Preencha ID e aba',false);return;}
+  setStatus(statusField,'Testando...',true);
+  try{
+    const resp=await fetch(buildURL(extractId(idRaw),abaNome));
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const text=await resp.text();
+    if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
+    const rows=parseCSV(text);
+    setStatus(statusField,`✓ OK — ${rows.length} linhas na aba "${abaNome}"`,true);
+  }catch(e){setStatus(statusField,'Erro: '+e.message,false);}
+}
+
+async function testarContaBlock(btn){
+  const block=btn.closest('.acc-block');
+  const idRaw=block.querySelector('.inv-id').value.trim();
+  const abaNome=block.querySelector('.inv-aba').value.trim();
+  const st=block.querySelector('.conta-status');
+  if(!idRaw||!abaNome){st.textContent='Preencha ID e aba';st.style.color='#f87171';return;}
+  st.textContent='Testando...';st.style.color='#888';
+  try{
+    const resp=await fetch(buildURL(extractId(idRaw),abaNome));
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const text=await resp.text();
+    if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
+    const rows=parseCSV(text);
+    const sample=rows.slice(0,3).map(r=>r[2]||'').filter(Boolean);
+    st.textContent=`✓ OK — ${rows.length} linhas. Col C: ${sample.join(', ')||'vazio'}`;st.style.color='#4ade80';
+  }catch(e){st.textContent='Erro: '+e.message;st.style.color='#f87171';}
+}
+
+function addContaBlock(containerId){
+  const c=document.getElementById(containerId);
+  const div=document.createElement('div');div.className='acc-block';
+  div.innerHTML=`<div class="fg" style="margin-bottom:6px">
+    <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
+    <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB"/></div>
+    <div><label>Filtro campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+    <div><label>Moeda</label><select class="inv-moeda"><option value="BRL">Real (BRL)</option><option value="USD">Dólar (USD)</option></select></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn bs" onclick="testarContaBlock(this)">Testar</button>
+    <button class="btn bs bd" onclick="this.closest('.acc-block').remove()">Remover</button>
+    <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span>
+  </div>`;
+  c.appendChild(div);
+}
+
+function getContasFromForm(formId){
+  const contas=[];
+  document.querySelectorAll('#'+formId+' .acc-block').forEach(block=>{
+    const idRaw=block.querySelector('.inv-id').value.trim();
+    const ab=block.querySelector('.inv-aba').value.trim();
+    const fi=block.querySelector('.inv-filtro').value.trim();
+    const mo=block.querySelector('.inv-moeda').value;
+    if(idRaw&&ab)contas.push({id:extractId(idRaw),aba:ab,filtro:fi,moeda:mo||'BRL'});
+  });
+  return contas;
+}
+
+function setStatus(elId,msg,ok){
+  const el=document.getElementById(elId);if(!el)return;
+  el.style.display='block';el.className=ok?'status-ok':'status-err';el.textContent=msg;
+}
+
+function closeModal(id){document.getElementById(id).style.display='none';}
+
+function aba(el,id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sec-'+id).classList.add('active');
+  if(id==='config'&&currentUserData?.role==='admin')carregarGestores();
+}
+
+function onVisChange(){calcular();}
+
+function toYMD(s){
+  if(!s)return'';s=s.trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.substring(0,10);
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){const p=s.split('/');return`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}
+  return s.substring(0,10);
+}
+function extractId(input){const m=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:input.trim();}
+function buildURL(id,sheet){return`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;}
+function parseCSV(text){
+  const lines=text.trim().split('\n').filter(l=>l.trim());
+  return lines.slice(1).map(line=>{
+    const cols=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=c;}
+    cols.push(cur.trim());return cols;
+  });
+}
+
 function updateSelects(){
+  const isAdmin=currentUserData?.role==='admin';
   const vs=document.getElementById('vis-sel'),vv=vs.value;
+  if(isAdmin){
+    const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
+    vs.innerHTML='<option value="">Todos</option>'+ops.map(op=>`<optgroup label="Operação: ${op}"><option value="op:${op}">Operação: ${op} (consolidado)</option>${projetos.filter(p=>p.op===op).map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('')}</optgroup>`).join('');
+    if(vv)vs.value=vv;
+  }
+  // operações para gestores
   const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
-  vs.innerHTML='<option value="">Todos</option>'+ops.map(op=>`<optgroup label="Operação: ${op}"><option value="op:${op}">Operação: ${op} (consolidado)</option>${projetos.filter(p=>p.op===op).map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('')}</optgroup>`).join('');
-  if(vv)vs.value=vv;
+  const gOp=document.getElementById('g-op');
+  if(gOp)gOp.innerHTML='<option value="">Selecione...</option>'+ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+
   document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome} (${p.op})</option>`).join('');
   document.getElementById('hist-proj-fil').innerHTML='<option value="">Todos</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
   document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.filter(c=>c.ativo!==false).map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
 }
 
-function saveDolar(){dolar=parseFloat(document.getElementById('cfg-dolar').value)||5.27;localStorage.setItem('ig_dolar',dolar);renderCasas();calcular();log('Cotação: R$ '+dolar.toFixed(2));}
+function log(msg){
+  logs.unshift({t:new Date().toLocaleTimeString('pt-BR'),m:msg});
+  const el=document.getElementById('log-area');if(!el)return;
+  el.innerHTML=logs.slice(0,40).map(l=>`<div class="log-e"><span>${l.m}</span><span>${l.t}</span></div>`).join('')||'<div class="empty">Nenhuma atividade</div>';
+}
+
 function exportJSON(){
   const b=new Blob([JSON.stringify({casas,projetos,ftds,dolar},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='igaming-backup.json';a.click();log('Backup exportado');
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='igaming-backup.json';a.click();
 }
+
 function importJSON(input){
   const r=new FileReader();
-  r.onload=e=>{
+  r.onload=async e=>{
     try{
       const d=JSON.parse(e.target.result);
-      if(d.casas)casas=d.casas;if(d.projetos)projetos=d.projetos;if(d.ftds)ftds=d.ftds;if(d.dolar)dolar=d.dolar;
-      save();renderCasas();renderProjetos();renderFTDs();updateSelects();
-      log('Backup importado');alert('Importado com sucesso!');
+      if(d.casas&&d.casas.length){
+        for(const c of d.casas){
+          await sb.from('casas').upsert({nome:c.nome,cpa:c.cpa||0,geo:c.geo||'',ativo:c.ativo!==false,use_periodos:c.usePeriodos||false,periodos:c.periodos||[]});
+        }
+      }
+      if(d.projetos&&d.projetos.length){
+        for(const p of d.projetos){
+          await sb.from('projetos').upsert({nome:p.nome,operacao:p.op||p.operacao,leads_id:p.leadsId||p.leads_id||'',leads_aba:p.leadsAba||p.leads_aba||'',contas:p.contas||[]});
+        }
+      }
+      await carregarCasas();await carregarProjetos();updateSelects();
+      alert('Dados importados com sucesso!');log('JSON importado');
     }catch(err){alert('Erro: '+err.message);}
   };
   r.readAsText(input.files[0]);
 }
 
-const td=new Date().toISOString().split('T')[0];
-document.getElementById('dt-i').value=td;
-document.getElementById('dt-f').value=td;
-document.getElementById('ftd-data').value=td;
-load();
-renderCasas();renderProjetos();renderFTDs();updateSelects();
-document.getElementById('last-up').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+init();
 </script>
 </body>
 </html>
