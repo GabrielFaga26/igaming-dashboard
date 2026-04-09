@@ -562,8 +562,6 @@ async function importarTudo(){
         const resp=await fetch(buildURL(p.leadsId,p.leadsAba));
         if(!resp.ok)throw new Error('HTTP '+resp.status);
         const rows=parseCSV(await resp.text());
-        // log primeiras 3 linhas para debug
-        rows.slice(0,3).forEach((r,i)=>log(`Leads debug linha ${i+1}: A="${r[0]}" B="${r[1]}" C="${r[2]}" D="${r[3]||''}"`)  );
         rows.forEach(r=>{
           if(!r[0])return;
           const dataEntrada=(r[1]||'').trim();
@@ -572,8 +570,6 @@ async function importarTudo(){
           const isDate=v=>/\d{1,2}\/\d{1,2}\/\d{4}/.test(v)||/\d{4}-\d{2}-\d{2}/.test(v);
           const ftdReal=!!(dataDeposito&&isDate(dataDeposito));
           const dataDepYMD=toYMD(dataDeposito);
-          if(ftdReal)log(`DEPOSITO ENCONTRADO: A="${r[0]}" B="${r[1]}" C="${dataDeposito}" YMD="${dataDepYMD}"`);
-          if(ftdReal&&!dataDepYMD)log(`AVISO: col C não convertida: "${dataDeposito}"`);
           leads.push({
             tid:r[0],
             data:dataEntrada,       // col B = data entrada (usado para filtro de leads)
@@ -637,29 +633,12 @@ function getFilteredData(visOverride){
   if(di)mF=mF.filter(f=>f.data>=di);
   if(df)mF=mF.filter(f=>f.data<=df);
 
-  // depósitos sheet: conta col C dentro do período selecionado
+  // depósitos sheet: conta todos os leads com col C preenchida (mesmo filtro de projeto/operação)
   let mDeps=leads.filter(l=>l.ftdReal);
-  // filtro por operação/projeto
   if(vis){
-    if(vis.startsWith('op:')){
-      const o=vis.slice(3);
-      mDeps=mDeps.filter(l=>l.opNome===o);
-    } else {
-      const id=parseInt(vis.replace('proj:',''));
-      mDeps=mDeps.filter(l=>l.projId===id);
-    }
+    if(vis.startsWith('op:')){const o=vis.slice(3);mDeps=mDeps.filter(l=>l.opNome===o);}
+    else{const id=parseInt(vis.replace('proj:',''));mDeps=mDeps.filter(l=>l.projId===id);}
   }
-  // filtra pela data do depósito (col C)
-  if(di||df){
-    mDeps=mDeps.filter(l=>{
-      if(!l.dataDeposito)return true; // sem data reconhecida, inclui
-      if(di&&l.dataDeposito<di)return false;
-      if(df&&l.dataDeposito>df)return false;
-      return true;
-    });
-  }
-  log(`Depósitos debug: total=${leads.length} ftdReal=${leads.filter(l=>l.ftdReal).length} filtrado=${mDeps.length} di=${di} df=${df} vis=${vis}`);
-  if(mDeps.length>0)log(`1o depósito: dataDeposito=${mDeps[0].dataDeposito} deposito=${mDeps[0].deposito}`);
   return{mL,mI,mF,tDeps:mDeps.length};
 }
 
