@@ -430,8 +430,20 @@ function fmtUSD(v){return'$ '+parseFloat(v).toFixed(2)}
 
 function toYMD(s){
   if(!s)return'';s=s.trim();
+  // yyyy-mm-dd
   if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.substring(0,10);
-  if(/^\d{2}\/\d{2}\/\d{4}/.test(s)){const p=s.split('/');return`${p[2]}-${p[1]}-${p[0]}`;}
+  // dd/mm/yyyy or d/m/yyyy (with or without leading zeros)
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){
+    const p=s.split('/');
+    const d=p[0].padStart(2,'0'),m=p[1].padStart(2,'0'),y=p[2];
+    return`${y}-${m}-${d}`;
+  }
+  // mm/dd/yyyy fallback (US format from some sheets)
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){
+    const p=s.split('/');
+    const m=p[0].padStart(2,'0'),d=p[1].padStart(2,'0'),y=p[2];
+    return`${y}-${m}-${d}`;
+  }
   return s.substring(0,10);
 }
 function extractId(input){const m=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:input.trim();}
@@ -550,18 +562,22 @@ async function importarTudo(){
         const resp=await fetch(buildURL(p.leadsId,p.leadsAba));
         if(!resp.ok)throw new Error('HTTP '+resp.status);
         const rows=parseCSV(await resp.text());
+        // log primeiras 3 linhas para debug
+        rows.slice(0,3).forEach((r,i)=>log(`Leads debug linha ${i+1}: A="${r[0]}" B="${r[1]}" C="${r[2]}" D="${r[3]||''}"`)  );
         rows.forEach(r=>{
           if(!r[0])return;
           const dataEntrada=(r[1]||'').trim();
           const dataDeposito=(r[2]||'').trim();
           // ftdReal = col C tem valor que parece uma data (dd/mm/yyyy ou yyyy-mm-dd)
-          const isDate=v=>/\d{2}\/\d{2}\/\d{4}/.test(v)||/\d{4}-\d{2}-\d{2}/.test(v);
+          const isDate=v=>/\d{1,2}\/\d{1,2}\/\d{4}/.test(v)||/\d{4}-\d{2}-\d{2}/.test(v);
           const ftdReal=!!(dataDeposito&&isDate(dataDeposito));
+          const dataDepYMD=toYMD(dataDeposito);
+          if(ftdReal&&!dataDepYMD)log(`AVISO: col C não convertida: "${dataDeposito}"`);
           leads.push({
             tid:r[0],
             data:dataEntrada,       // col B = data entrada (usado para filtro de leads)
             deposito:dataDeposito,  // col C = data depósito (usado para filtro de depósitos)
-            dataDeposito:toYMD(dataDeposito), // normalizado para comparação
+            dataDeposito:dataDepYMD, // normalizado para comparação
             ftdReal,
             projId:p.id,projNome:p.nome,opNome:p.op
           });
@@ -628,8 +644,9 @@ function getFilteredData(visOverride){
     else{const id=parseInt(vis.slice(5));mDeps=mDeps.filter(l=>l.projId===id);}
   }
   mDeps=mDeps.filter(l=>l.ftdReal);
-  if(di)mDeps=mDeps.filter(l=>l.dataDeposito&&l.dataDeposito>=di);
-  if(df)mDeps=mDeps.filter(l=>l.dataDeposito&&l.dataDeposito<=df);
+  // filtra por data de depósito (col C) se disponível; se não reconhecer o formato, inclui mesmo assim
+  if(di)mDeps=mDeps.filter(l=>!l.dataDeposito||l.dataDeposito>=di);
+  if(df)mDeps=mDeps.filter(l=>!l.dataDeposito||l.dataDeposito<=df);
 
   return{mL,mI,mF,tDeps:mDeps.length};
 }
