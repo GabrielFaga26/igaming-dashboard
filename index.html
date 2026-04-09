@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Painel de Afiliados iGaming</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#e8e8e8;min-height:100vh}
@@ -50,6 +51,8 @@ label{font-size:12px;color:#888;display:block;margin-bottom:4px}
 .bs{padding:5px 12px;font-size:12px}
 .bd{background:#450a0a;color:#f87171;border-color:transparent}
 .bd:hover{background:#5a0d0d}
+.bgreen{background:#14532d;color:#4ade80;border-color:transparent}
+.bgreen:hover{background:#1a6b38}
 .empty{text-align:center;color:#555;font-size:13px;padding:1.5rem}
 .sbox{background:#1a1a1a;border-radius:8px;padding:1rem;border:1px solid #2a2a2a;margin-bottom:.75rem}
 .log-e{font-size:12px;padding:5px 0;border-bottom:1px solid #1e1e1e;color:#666;display:flex;justify-content:space-between;gap:8px}
@@ -58,11 +61,13 @@ label{font-size:12px;color:#888;display:block;margin-bottom:4px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .hint{font-size:11px;color:#555;margin-top:3px}
 .sheet-block{border:1px solid #2a2a2a;border-radius:8px;padding:1rem;margin-bottom:1rem;background:#1a1a1a}
-.sheet-block-title{font-size:13px;font-weight:500;color:#ccc;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #2a2a2a}
+.sheet-block-title{font-size:13px;font-weight:500;color:#ccc;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #2a2a2a;display:flex;align-items:center;justify-content:space-between}
 .status-ok{background:#14532d;color:#4ade80;border-radius:8px;padding:6px 10px;font-size:12px;margin-top:6px}
 .status-err{background:#450a0a;color:#f87171;border-radius:8px;padding:6px 10px;font-size:12px;margin-top:6px}
-.divider{border:none;border-top:1px solid #2a2a2a;margin:.875rem 0}
 h1{font-size:18px;font-weight:500;color:#fff}
+.acc-block{background:#1e1e1e;border-radius:8px;padding:.875rem;margin-bottom:8px;border:1px solid #2a2a2a}
+.day-row{background:#1a1a1a;border-radius:8px;padding:.875rem;margin-bottom:8px;border:1px solid #2a2a2a}
+.day-row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -74,9 +79,6 @@ h1{font-size:18px;font-weight:500;color:#fff}
     <div style="font-size:12px;color:#555;margin-top:2px" id="last-up">Última atualização: —</div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <select id="proj-sel" style="width:auto;min-width:160px;font-size:12px;padding:6px 10px" onchange="onProjChange()">
-      <option value="">Todos os projetos</option>
-    </select>
     <select id="dolar-sel" style="width:auto;font-size:12px;padding:6px 10px" onchange="dolar=parseFloat(this.value);renderCasas()">
       <option value="5.27">$ 1 = R$ 5,27</option>
       <option value="5.50">$ 1 = R$ 5,50</option>
@@ -98,6 +100,11 @@ h1{font-size:18px;font-weight:500;color:#fff}
 <!-- VISÃO GERAL -->
 <div id="sec-overview" class="section active">
   <div style="display:flex;gap:10px;margin-bottom:1.25rem;align-items:flex-end;flex-wrap:wrap">
+    <div><label>Projeto</label>
+      <select id="proj-sel" style="width:180px" onchange="calcular();renderLeads()">
+        <option value="">Todos os projetos</option>
+      </select>
+    </div>
     <div><label>De</label><input type="date" id="dt-i" style="width:150px"/></div>
     <div><label>Até</label><input type="date" id="dt-f" style="width:150px"/></div>
     <button class="btn bp" style="align-self:flex-end" onclick="calcular()">Calcular</button>
@@ -115,7 +122,7 @@ h1{font-size:18px;font-weight:500;color:#fff}
   </div>
   <div class="row2">
     <div class="card">
-      <div class="ch"><span class="ct">FTDs confirmados por casa</span><span class="pill pb" id="periodo-badge">—</span></div>
+      <div class="ch"><span class="ct">FTDs por casa</span><span class="pill pb" id="periodo-badge">—</span></div>
       <div style="overflow-x:auto">
         <table><thead><tr><th>Casa</th><th>FTDs</th><th>CPA unit.</th><th>Receita</th><th>%</th></tr></thead>
         <tbody id="tbl-por-casa"><tr><td colspan="5" class="empty">Calcule as métricas</td></tr></tbody></table>
@@ -138,7 +145,7 @@ h1{font-size:18px;font-weight:500;color:#fff}
 <!-- LANÇAR FTDs -->
 <div id="sec-ftds" class="section">
   <div class="card">
-    <div class="ch"><span class="ct">Novo lançamento</span></div>
+    <div class="ch"><span class="ct">Lançamento do dia</span></div>
     <div class="fg">
       <div><label>Projeto</label><select id="ftd-proj"><option value="">Selecione...</option></select></div>
       <div><label>Data</label><input type="date" id="ftd-data"/></div>
@@ -155,12 +162,18 @@ h1{font-size:18px;font-weight:500;color:#fff}
     </div>
     <button class="btn bp" onclick="salvarFTD()">Salvar lançamento</button>
   </div>
+
   <div class="card">
-    <div class="ch"><span class="ct">Histórico de lançamentos</span><span id="ftd-count" class="pill p0">0</span></div>
-    <div style="overflow-x:auto">
-      <table><thead><tr><th>Data</th><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA unit.</th><th>Receita</th><th></th></tr></thead>
-      <tbody id="tbl-ftds"><tr><td colspan="7" class="empty">Nenhum lançamento</td></tr></tbody></table>
+    <div class="ch">
+      <span class="ct">Histórico de dias</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="hist-proj-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs()">
+          <option value="">Todos os projetos</option>
+        </select>
+        <button class="btn bs bgreen" onclick="atualizarDia()">↻ Atualizar dados do dia</button>
+      </div>
     </div>
+    <div id="hist-dias"><div class="empty">Nenhum lançamento ainda</div></div>
   </div>
 </div>
 
@@ -170,21 +183,13 @@ h1{font-size:18px;font-weight:500;color:#fff}
     <div class="ch"><span class="ct">Adicionar casa de apostas</span></div>
     <div class="fg">
       <div><label>Nome</label><input type="text" id="c-nome" placeholder="Ex: Melbet"/></div>
-      <div><label>Tipo de acordo</label>
-        <select id="c-tipo" onchange="toggleCasa()">
-          <option value="cpa_usd">CPA fixo em USD por FTD</option>
-          <option value="cpa_brl">CPA fixo em BRL por FTD</option>
-          <option value="revshare">RevShare (%)</option>
-        </select>
-      </div>
-      <div id="c-cpa-div"><label id="c-cpa-lbl">Valor CPA (USD)</label><input type="number" id="c-cpa" placeholder="Ex: 25"/></div>
-      <div id="c-rev-div" style="display:none"><label>RevShare (%)</label><input type="number" id="c-rev" placeholder="Ex: 30"/></div>
+      <div><label>Valor CPA (USD por FTD)</label><input type="number" id="c-cpa" placeholder="Ex: 25"/></div>
       <div><label>Geo / País</label><input type="text" id="c-geo" placeholder="Ex: LATAM, MX"/></div>
-      <div><label>Plataforma</label><input type="text" id="c-plat" placeholder="Ex: Hotmart, própria"/></div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn bp" onclick="addCasa()">+ Adicionar</button>
       <button class="btn" onclick="clearCasa()">Limpar</button>
+      <button class="btn bs bgreen" onclick="exportCasasExcel()" style="margin-left:auto">Exportar Excel</button>
     </div>
   </div>
   <div class="card">
@@ -204,45 +209,36 @@ h1{font-size:18px;font-weight:500;color:#fff}
 
     <div class="sheet-block">
       <div class="sheet-block-title">Planilha de Leads</div>
-      <div style="font-size:11px;color:#555;margin-bottom:10px">Col A = ID Telegram &nbsp;·&nbsp; Col B = Data entrada &nbsp;·&nbsp; Col C = Data depósito (preenchida = FTD real)</div>
+      <div style="font-size:11px;color:#555;margin-bottom:10px">Col A = ID Telegram · Col B = Data entrada · Col C = Data depósito (preenchida = FTD real)</div>
       <div class="fg" style="margin-bottom:6px">
         <div style="grid-column:1/-1">
           <label>ID ou URL da planilha</label>
-          <input type="text" id="p-leads-id" placeholder="Cole a URL completa ou só o ID da planilha"/>
-          <div class="hint">Ex: https://docs.google.com/spreadsheets/d/1y6hp.../edit</div>
+          <input type="text" id="p-leads-id" placeholder="Cole a URL completa ou só o ID"/>
         </div>
-        <div>
-          <label>Nome exato da aba</label>
-          <input type="text" id="p-leads-aba" placeholder="Ex: Alan - Mexico"/>
-        </div>
-        <div style="display:flex;align-items:flex-end">
-          <button class="btn bs" style="width:100%" onclick="testarSheet('leads')">Testar conexão</button>
-        </div>
+        <div><label>Nome exato da aba</label><input type="text" id="p-leads-aba" placeholder="Ex: Alan - Mexico"/></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('leads')">Testar conexão</button></div>
       </div>
       <div id="leads-test-status" style="display:none"></div>
     </div>
 
     <div class="sheet-block">
-      <div class="sheet-block-title">Planilha de Investimento (Facebook Ads)</div>
-      <div style="font-size:11px;color:#555;margin-bottom:10px">Col A = Date &nbsp;·&nbsp; Col B = Campaign Name &nbsp;·&nbsp; Col C = Spend</div>
-      <div class="fg" style="margin-bottom:6px">
-        <div style="grid-column:1/-1">
-          <label>ID ou URL da planilha</label>
-          <input type="text" id="p-inv-id" placeholder="Cole a URL completa ou só o ID da planilha"/>
-        </div>
-        <div>
-          <label>Nome exato da aba</label>
-          <input type="text" id="p-inv-aba" placeholder="Ex: Dados FB CA_3325"/>
-        </div>
-        <div style="display:flex;align-items:flex-end">
-          <button class="btn bs" style="width:100%" onclick="testarSheet('inv')">Testar conexão</button>
-        </div>
+      <div class="sheet-block-title">
+        <span>Contas de Anúncio (Facebook Ads)</span>
+        <button class="btn bs" onclick="addContaAnuncio()">+ Adicionar conta</button>
       </div>
-      <div id="inv-test-status" style="display:none"></div>
-      <div style="margin-top:10px">
-        <label>Filtro por nome de campanha <span style="color:#444;font-weight:400">(opcional)</span></label>
-        <input type="text" id="p-filtro" placeholder="Ex: MÉXICO — soma só campanhas que contêm esse texto"/>
-        <div class="hint">Deixe vazio para somar todas as campanhas da aba</div>
+      <div style="font-size:11px;color:#555;margin-bottom:10px">Col A = Date · Col B = Campaign Name · Col C = Spend · Adicione quantas contas precisar</div>
+      <div id="contas-anuncio-form">
+        <div class="acc-block">
+          <div class="fg" style="margin-bottom:6px">
+            <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
+            <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB CA_3325"/></div>
+            <div><label>Filtro de campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn bs" onclick="testarContaAnuncio(this)">Testar conexão</button>
+            <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -251,6 +247,7 @@ h1{font-size:18px;font-weight:500;color:#fff}
       <button class="btn" onclick="clearProjeto()">Limpar</button>
     </div>
   </div>
+
   <div class="card">
     <div class="ch"><span class="ct">Projetos cadastrados</span><span id="proj-count" class="pill pb">0</span></div>
     <div id="lista-projetos"><div class="empty">Nenhum projeto cadastrado</div></div>
@@ -268,7 +265,7 @@ h1{font-size:18px;font-weight:500;color:#fff}
   </div>
   <div class="card">
     <div class="ch"><span class="ct">Backup dos dados</span></div>
-    <p style="font-size:13px;color:#666;margin-bottom:1rem">Exporte seus projetos, casas e lançamentos de FTDs para não perder nada. Importe para restaurar.</p>
+    <p style="font-size:13px;color:#666;margin-bottom:1rem">Exporte todos os dados para não perder nada. Importe para restaurar.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn bs" onclick="exportJSON()">Exportar JSON</button>
       <button class="btn bs" onclick="document.getElementById('imp-file').click()">Importar JSON</button>
@@ -280,12 +277,11 @@ h1{font-size:18px;font-weight:500;color:#fff}
     <div id="log-area" style="max-height:240px;overflow-y:auto"><div class="empty">Nenhuma atividade</div></div>
   </div>
 </div>
-
 </div>
 
 <script>
-let casas=[], projetos=[], ftds=[], leads=[], investData=[], logs=[];
-let dolar=5.27, invChart=null;
+let casas=[],projetos=[],ftds=[],leads=[],investData=[],logs=[];
+let dolar=5.27,invChart=null;
 
 function load(){
   try{casas=JSON.parse(localStorage.getItem('ig_casas')||'[]')}catch(e){casas=[]}
@@ -320,59 +316,73 @@ function aba(el,id){
 function fmtBRL(v){return'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function fmtUSD(v){return'$ '+parseFloat(v).toFixed(2)}
 function toYMD(s){
-  if(!s)return'';
-  s=s.trim();
+  if(!s)return'';s=s.trim();
   if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.substring(0,10);
   if(/^\d{2}\/\d{2}\/\d{4}/.test(s)){const p=s.split('/');return`${p[2]}-${p[1]}-${p[0]}`;}
   return s.substring(0,10);
 }
-function extractId(input){
-  const m=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  return m?m[1]:input.trim();
-}
-function buildGvizURL(sheetId,sheetName){
-  return`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-}
+function extractId(input){const m=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:input.trim();}
+function buildURL(id,sheet){return`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;}
 function parseCSV(text){
   const lines=text.trim().split('\n').filter(l=>l.trim());
   return lines.slice(1).map(line=>{
     const cols=[];let cur='',inQ=false;
     for(let i=0;i<line.length;i++){
       const c=line[i];
-      if(c==='"'){inQ=!inQ;}
-      else if(c===','&&!inQ){cols.push(cur.trim());cur='';}
-      else cur+=c;
+      if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=c;
     }
-    cols.push(cur.trim());
-    return cols;
+    cols.push(cur.trim());return cols;
   });
 }
 function setStatus(elId,msg,ok){
-  const el=document.getElementById(elId);
-  if(!el)return;
-  el.style.display='block';
-  el.className=ok?'status-ok':'status-err';
-  el.textContent=msg;
+  const el=document.getElementById(elId);if(!el)return;
+  el.style.display='block';el.className=ok?'status-ok':'status-err';el.textContent=msg;
 }
 async function testarSheet(tipo){
-  const idRaw=document.getElementById(tipo==='leads'?'p-leads-id':'p-inv-id').value.trim();
-  const abaNome=document.getElementById(tipo==='leads'?'p-leads-aba':'p-inv-aba').value.trim();
-  const statusEl=tipo+'s-test-status';
-  if(!idRaw||!abaNome){setStatus(statusEl,'Preencha o ID e o nome da aba',false);return;}
-  const sheetId=extractId(idRaw);
-  setStatus(statusEl,'Testando...', true);
+  const idRaw=document.getElementById('p-leads-id').value.trim();
+  const abaNome=document.getElementById('p-leads-aba').value.trim();
+  if(!idRaw||!abaNome){setStatus('leads-test-status','Preencha o ID e o nome da aba',false);return;}
+  setStatus('leads-test-status','Testando...',true);
   try{
-    const resp=await fetch(buildGvizURL(sheetId,abaNome));
+    const resp=await fetch(buildURL(extractId(idRaw),abaNome));
     if(!resp.ok)throw new Error('HTTP '+resp.status);
     const text=await resp.text();
-    if(text.toLowerCase().includes('error')||text.toLowerCase().includes('invalid sheet')){throw new Error('Aba não encontrada — verifique o nome exato');}
+    if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
     const rows=parseCSV(text);
-    setStatus(statusEl,`✓ Conexão OK — ${rows.length} linhas encontradas na aba "${abaNome}"`,true);
-    log(`Teste OK (${tipo}): ${rows.length} linhas`);
-  }catch(e){
-    setStatus(statusEl,'Erro: '+e.message,false);
-    log('Erro teste ('+tipo+'): '+e.message);
-  }
+    setStatus('leads-test-status',`✓ OK — ${rows.length} linhas encontradas na aba "${abaNome}"`,true);
+    log('Teste leads OK: '+rows.length+' linhas');
+  }catch(e){setStatus('leads-test-status','Erro: '+e.message,false);}
+}
+async function testarContaAnuncio(btn){
+  const block=btn.closest('.acc-block');
+  const idRaw=block.querySelector('.inv-id').value.trim();
+  const abaNome=block.querySelector('.inv-aba').value.trim();
+  const st=block.querySelector('.conta-status');
+  if(!idRaw||!abaNome){st.textContent='Preencha ID e aba';st.style.color='#f87171';return;}
+  st.textContent='Testando...';st.style.color='#888';
+  try{
+    const resp=await fetch(buildURL(extractId(idRaw),abaNome));
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const text=await resp.text();
+    if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
+    const rows=parseCSV(text);
+    st.textContent=`✓ OK — ${rows.length} linhas`;st.style.color='#4ade80';
+    log('Conta anúncio OK: '+rows.length+' linhas');
+  }catch(e){st.textContent='Erro: '+e.message;st.style.color='#f87171';}
+}
+function addContaAnuncio(){
+  const div=document.createElement('div');div.className='acc-block';
+  div.innerHTML=`<div class="fg" style="margin-bottom:6px">
+    <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
+    <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB CA_3325"/></div>
+    <div><label>Filtro de campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn bs" onclick="testarContaAnuncio(this)">Testar conexão</button>
+    <button class="btn bs bd" onclick="this.closest('.acc-block').remove()">Remover conta</button>
+    <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span>
+  </div>`;
+  document.getElementById('contas-anuncio-form').appendChild(div);
 }
 async function importarTudo(){
   const st=document.getElementById('import-status');
@@ -385,7 +395,7 @@ async function importarTudo(){
   for(const p of lista){
     if(p.leadsId&&p.leadsAba){
       try{
-        const resp=await fetch(buildGvizURL(p.leadsId,p.leadsAba));
+        const resp=await fetch(buildURL(p.leadsId,p.leadsAba));
         if(!resp.ok)throw new Error('HTTP '+resp.status);
         const rows=parseCSV(await resp.text());
         rows.forEach(r=>{
@@ -397,12 +407,13 @@ async function importarTudo(){
         log(`Leads "${p.nome}" / "${p.leadsAba}": ${rows.length} linhas`);
       }catch(e){log('Erro leads '+p.nome+': '+e.message);}
     }
-    if(p.invId&&p.invAba){
+    for(const conta of (p.contas||[])){
+      if(!conta.id||!conta.aba)continue;
       try{
-        const resp=await fetch(buildGvizURL(p.invId,p.invAba));
+        const resp=await fetch(buildURL(conta.id,conta.aba));
         if(!resp.ok)throw new Error('HTTP '+resp.status);
         const rows=parseCSV(await resp.text());
-        const filtro=(p.filtro||'').toLowerCase();
+        const filtro=(conta.filtro||'').toLowerCase();
         let invP=0;
         rows.forEach(r=>{
           const camp=(r[1]||'').toLowerCase();
@@ -412,8 +423,8 @@ async function importarTudo(){
           investData.push({data:r[0]||'',campanha:r[1]||'',spend,projId:p.id,projNome:p.nome});
           invTotal+=spend;invP+=spend;
         });
-        log(`Invest "${p.nome}" / "${p.invAba}": R$ ${invP.toFixed(2)}`);
-      }catch(e){log('Erro invest '+p.nome+': '+e.message);}
+        log(`Invest "${p.nome}" / "${conta.aba}": R$ ${invP.toFixed(2)}`);
+      }catch(e){log('Erro invest '+conta.aba+': '+e.message);}
     }
   }
   save();
@@ -421,7 +432,7 @@ async function importarTudo(){
   document.getElementById('leads-badge').textContent=leadsTotal+' leads';
   st.textContent=`${leadsTotal} leads · R$ ${invTotal.toFixed(2)}`;
   renderLeads();calcular();
-  log('Importação concluída — '+leadsTotal+' leads, R$ '+invTotal.toFixed(2));
+  log('Concluído — '+leadsTotal+' leads, R$ '+invTotal.toFixed(2));
 }
 function calcular(){
   const di=document.getElementById('dt-i').value;
@@ -436,7 +447,7 @@ function calcular(){
   const conv=tL>0?(tF/tL*100).toFixed(1)+'%':'—';
   const porCasa={};
   mF.forEach(f=>{
-    if(!porCasa[f.casaId])porCasa[f.casaId]={qtd:0,receita:0,casaNome:f.casaNome,cpa:f.cpa,tipo:f.tipo};
+    if(!porCasa[f.casaId])porCasa[f.casaId]={qtd:0,receita:0,casaNome:f.casaNome,cpa:f.cpa};
     porCasa[f.casaId].qtd+=f.qtd;porCasa[f.casaId].receita+=f.receita;
   });
   const rec=Object.values(porCasa).reduce((s,v)=>s+v.receita,0);
@@ -456,8 +467,7 @@ function calcular(){
   const rows=Object.values(porCasa).sort((a,b)=>b.receita-a.receita);
   document.querySelector('#tbl-por-casa').innerHTML=rows.length?rows.map(v=>{
     const pct=rec>0?(v.receita/rec*100).toFixed(1)+'%':'—';
-    const cs=v.tipo==='cpa_usd'?fmtUSD(v.cpa)+' = '+fmtBRL(v.cpa*dolar):fmtBRL(v.cpa);
-    return`<tr><td>${v.casaNome}</td><td style="font-weight:500">${v.qtd}</td><td class="num">${cs}</td><td class="num" style="color:#4ade80">${fmtBRL(v.receita)}</td><td><span class="pill pg">${pct}</span></td></tr>`;
+    return`<tr><td>${v.casaNome}</td><td style="font-weight:500">${v.qtd}</td><td class="num">${fmtUSD(v.cpa)} = ${fmtBRL(v.cpa*dolar)}</td><td class="num" style="color:#4ade80">${fmtBRL(v.receita)}</td><td><span class="pill pg">${pct}</span></td></tr>`;
   }).join(''):'<tr><td colspan="5" class="empty">Sem lançamentos no período</td></tr>';
   renderChartInv(mI);
 }
@@ -488,17 +498,15 @@ function renderLeads(){
   </tr>`).join('')+(leads.length>100?`<tr><td colspan="5" style="text-align:center;font-size:12px;color:#555;padding:8px">... e mais ${leads.length-100} leads</td></tr>`:'')
   :'<tr><td colspan="5" class="empty">Nenhum lead importado</td></tr>';
 }
-function onProjChange(){renderLeads();calcular();}
 function calcPrev(){
   const casaId=parseInt(document.getElementById('ftd-casa').value);
   const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
   const casa=casas.find(c=>c.id===casaId);
   if(!casa||!qtd){document.getElementById('p-cpa').textContent='—';document.getElementById('p-rec').textContent='—';document.getElementById('p-usd').textContent='—';return;}
-  const unit=casa.tipo==='cpa_usd'?casa.cpa*dolar:casa.cpa;
-  const rec=unit*qtd;
-  document.getElementById('p-cpa').textContent=fmtBRL(unit)+(casa.tipo==='cpa_usd'?' ('+fmtUSD(casa.cpa)+')':'');
-  document.getElementById('p-rec').textContent=fmtBRL(rec);
-  document.getElementById('p-usd').textContent=fmtUSD(casa.tipo==='cpa_usd'?casa.cpa*qtd:rec/dolar);
+  const unit=casa.cpa*dolar;
+  document.getElementById('p-cpa').textContent=fmtBRL(unit)+' ('+fmtUSD(casa.cpa)+')';
+  document.getElementById('p-rec').textContent=fmtBRL(unit*qtd);
+  document.getElementById('p-usd').textContent=fmtUSD(casa.cpa*qtd);
 }
 function salvarFTD(){
   const projId=parseInt(document.getElementById('ftd-proj').value);
@@ -508,65 +516,109 @@ function salvarFTD(){
   if(!projId||!data||!casaId||!qtd){alert('Preencha todos os campos');return;}
   const proj=projetos.find(p=>p.id===projId);
   const casa=casas.find(c=>c.id===casaId);
-  const cpaUnit=casa.tipo==='cpa_usd'?casa.cpa*dolar:casa.cpa;
-  ftds.push({id:Date.now(),projId,projNome:proj?proj.nome:'—',data,casaId,casaNome:casa?casa.nome:'—',qtd,cpaUnit,tipo:casa.tipo,cpa:casa.cpa,receita:cpaUnit*qtd});
+  const existing=ftds.find(f=>f.projId===projId&&f.data===data&&f.casaId===casaId);
+  if(existing){
+    if(!confirm(`Já existe lançamento para ${casa.nome} em ${data.split('-').reverse().join('/')}. Substituir?`))return;
+    ftds=ftds.filter(f=>!(f.projId===projId&&f.data===data&&f.casaId===casaId));
+  }
+  const cpaUnit=casa.cpa*dolar;
+  ftds.push({id:Date.now(),projId,projNome:proj?proj.nome:'—',data,casaId,casaNome:casa?casa.nome:'—',qtd,cpaUnit,cpa:casa.cpa,receita:cpaUnit*qtd});
   save();renderFTDs();calcular();
   document.getElementById('ftd-qtd').value='';
   log(`FTD: ${proj?proj.nome:'?'} · ${casa?casa.nome:'?'} · ${qtd} · ${fmtBRL(cpaUnit*qtd)}`);
 }
+async function atualizarDia(){
+  const data=document.getElementById('ftd-data').value;
+  if(!data){alert('Selecione uma data primeiro');return;}
+  await importarTudo();
+  log('Dados do dia '+data.split('-').reverse().join('/')+' atualizados');
+}
 function removerFTD(id){ftds=ftds.filter(f=>f.id!==id);save();renderFTDs();calcular();}
 function renderFTDs(){
-  document.getElementById('ftd-count').textContent=ftds.length;
-  document.querySelector('#tbl-ftds').innerHTML=ftds.length?[...ftds].reverse().map(f=>{
-    const cs=f.tipo==='cpa_usd'?fmtUSD(f.cpa)+' = '+fmtBRL(f.cpaUnit):fmtBRL(f.cpaUnit);
-    return`<tr><td>${f.data}</td><td><span class="pill pb" style="font-size:10px">${f.projNome}</span></td><td>${f.casaNome}</td><td style="font-weight:500">${f.qtd}</td><td class="num">${cs}</td><td class="num" style="color:#4ade80">${fmtBRL(f.receita)}</td><td><button class="btn bs bd" onclick="removerFTD(${f.id})">×</button></td></tr>`;
-  }).join(''):'<tr><td colspan="7" class="empty">Nenhum lançamento</td></tr>';
-}
-function toggleCasa(){
-  const t=document.getElementById('c-tipo').value;
-  document.getElementById('c-cpa-div').style.display=t==='revshare'?'none':'block';
-  document.getElementById('c-rev-div').style.display=t==='revshare'?'block':'none';
-  document.getElementById('c-cpa-lbl').textContent=t==='cpa_brl'?'Valor CPA (R$)':'Valor CPA (USD)';
+  const pf=document.getElementById('hist-proj-fil').value;
+  const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
+  const el=document.getElementById('hist-dias');
+  if(!dados.length){el.innerHTML='<div class="empty">Nenhum lançamento ainda</div>';return;}
+  const porDia={};
+  dados.forEach(f=>{if(!porDia[f.data])porDia[f.data]=[];porDia[f.data].push(f);});
+  const dias=Object.keys(porDia).sort().reverse();
+  el.innerHTML=dias.map(dia=>{
+    const items=porDia[dia];
+    const totalRec=items.reduce((s,f)=>s+f.receita,0);
+    const totalFTD=items.reduce((s,f)=>s+f.qtd,0);
+    return`<div class="day-row">
+      <div class="day-row-header">
+        <div><span style="font-size:13px;font-weight:500;color:#ccc">${dia.split('-').reverse().join('/')}</span>
+          <span class="pill p0" style="margin-left:8px;font-size:10px">${totalFTD} FTDs</span></div>
+        <span style="font-size:13px;color:#4ade80;font-weight:500">${fmtBRL(totalRec)}</span>
+      </div>
+      <table style="font-size:12px">
+        <thead><tr><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA</th><th>Receita</th><th></th></tr></thead>
+        <tbody>${items.map(f=>`<tr>
+          <td><span class="pill pb" style="font-size:10px">${f.projNome}</span></td>
+          <td>${f.casaNome}</td><td style="font-weight:500">${f.qtd}</td>
+          <td class="num">${fmtUSD(f.cpa)}</td>
+          <td class="num" style="color:#4ade80">${fmtBRL(f.receita)}</td>
+          <td><button class="btn bs bd" onclick="removerFTD(${f.id})">×</button></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }).join('');
 }
 function addCasa(){
   const nome=document.getElementById('c-nome').value.trim();
   if(!nome){alert('Informe o nome');return;}
-  const tipo=document.getElementById('c-tipo').value;
-  casas.push({id:Date.now(),nome,tipo,cpa:parseFloat(document.getElementById('c-cpa').value)||0,rev:parseFloat(document.getElementById('c-rev').value)||0,geo:document.getElementById('c-geo').value.trim(),plat:document.getElementById('c-plat').value.trim()});
+  casas.push({id:Date.now(),nome,cpa:parseFloat(document.getElementById('c-cpa').value)||0,geo:document.getElementById('c-geo').value.trim()});
   save();renderCasas();updateSelects();clearCasa();log('Casa: '+nome);
 }
-function clearCasa(){['c-nome','c-cpa','c-rev','c-geo','c-plat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('c-tipo').value='cpa_usd';toggleCasa();}
+function clearCasa(){['c-nome','c-cpa','c-geo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';})}
 function removerCasa(id){const c=casas.find(x=>x.id===id);if(!confirm('Remover '+(c?c.nome:'?')+'?'))return;casas=casas.filter(x=>x.id!==id);save();renderCasas();updateSelects();}
 function renderCasas(){
   document.getElementById('casas-count').textContent=casas.length;
   const el=document.getElementById('lista-casas');
   if(!casas.length){el.innerHTML='<div class="empty">Nenhuma casa</div>';return;}
-  el.innerHTML=casas.map(c=>{
-    const tl={cpa_usd:'CPA USD',cpa_brl:'CPA BRL',revshare:'RevShare'}[c.tipo]||c.tipo;
-    const ac=c.tipo==='cpa_usd'?`${fmtUSD(c.cpa)}/FTD = ${fmtBRL(c.cpa*dolar)}`:c.tipo==='cpa_brl'?`${fmtBRL(c.cpa)}/FTD`:`${c.rev}% RevShare`;
-    return`<div style="background:#1a1a1a;border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #2a2a2a">
-      <div><div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome} <span class="pill pb" style="font-size:10px">${tl}</span>${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}</div>
-      <div style="font-size:12px;color:#666;margin-top:2px">${ac}${c.plat?' · '+c.plat:''}</div></div>
-      <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
-    </div>`;
-  }).join('');
+  el.innerHTML=casas.map(c=>`<div style="background:#1a1a1a;border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #2a2a2a">
+    <div><div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}</div>
+    <div style="font-size:12px;color:#666;margin-top:2px">${fmtUSD(c.cpa)}/FTD = ${fmtBRL(c.cpa*dolar)}</div></div>
+    <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
+  </div>`).join('');
+}
+function exportCasasExcel(){
+  if(!casas.length){alert('Nenhuma casa cadastrada');return;}
+  const data=[['Nome','CPA (USD)','CPA (BRL)','Geo'],...casas.map(c=>[c.nome,c.cpa,(c.cpa*dolar).toFixed(2),c.geo||''])];
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:20},{wch:12},{wch:14},{wch:12}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Casas de Apostas');
+  XLSX.writeFile(wb,'casas-apostas.xlsx');
+  log('Excel exportado');
 }
 function addProjeto(){
   const nome=document.getElementById('p-nome').value.trim();
   if(!nome){alert('Informe o nome');return;}
   const leadsIdRaw=document.getElementById('p-leads-id').value.trim();
-  const invIdRaw=document.getElementById('p-inv-id').value.trim();
-  projetos.push({
-    id:Date.now(),nome,op:document.getElementById('p-op').value.trim(),
-    leadsId:leadsIdRaw?extractId(leadsIdRaw):'',leadsAba:document.getElementById('p-leads-aba').value.trim(),
-    invId:invIdRaw?extractId(invIdRaw):'',invAba:document.getElementById('p-inv-aba').value.trim(),
-    filtro:document.getElementById('p-filtro').value.trim()
+  const contas=[];
+  document.querySelectorAll('#contas-anuncio-form .acc-block').forEach(block=>{
+    const idRaw=block.querySelector('.inv-id').value.trim();
+    const ab=block.querySelector('.inv-aba').value.trim();
+    const fi=block.querySelector('.inv-filtro').value.trim();
+    if(idRaw&&ab)contas.push({id:extractId(idRaw),aba:ab,filtro:fi});
   });
+  projetos.push({id:Date.now(),nome,op:document.getElementById('p-op').value.trim(),leadsId:leadsIdRaw?extractId(leadsIdRaw):'',leadsAba:document.getElementById('p-leads-aba').value.trim(),contas});
   save();renderProjetos();updateSelects();clearProjeto();log('Projeto: '+nome);
 }
 function clearProjeto(){
-  ['p-nome','p-op','p-leads-id','p-leads-aba','p-inv-id','p-inv-aba','p-filtro'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  ['leads-test-status','inv-test-status'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  ['p-nome','p-op','p-leads-id','p-leads-aba'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('leads-test-status').style.display='none';
+  document.getElementById('contas-anuncio-form').innerHTML=`<div class="acc-block">
+    <div class="fg" style="margin-bottom:6px">
+      <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
+      <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB CA_3325"/></div>
+      <div><label>Filtro de campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+    </div>
+    <div style="display:flex;gap:8px"><button class="btn bs" onclick="testarContaAnuncio(this)">Testar conexão</button>
+    <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span></div>
+  </div>`;
 }
 function removerProjeto(id){
   const p=projetos.find(x=>x.id===id);
@@ -588,8 +640,7 @@ function renderProjetos(){
       </div>
       <div style="font-size:12px;color:#555;display:grid;gap:4px">
         <div>Leads: ${p.leadsId&&p.leadsAba?`<span style="color:#4ade80">Aba "${p.leadsAba}" conectada</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
-        <div>Invest: ${p.invId&&p.invAba?`<span style="color:#4ade80">Aba "${p.invAba}" conectada</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
-        ${p.filtro?`<div>Filtro: <span class="pill pa" style="font-size:11px">"${p.filtro}"</span></div>`:''}
+        <div>Contas ads: ${p.contas&&p.contas.length?`<span style="color:#4ade80">${p.contas.length} conta(s) — ${p.contas.map(c=>'"'+c.aba+'"'+(c.filtro?' ['+c.filtro+']':'')).join(', ')}</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
       </div>
     </div>`;
   }).join('');
@@ -599,7 +650,8 @@ function updateSelects(){
   ps.innerHTML='<option value="">Todos os projetos</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
   ps.value=pv;
   document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
-  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.map(c=>`<option value="${c.id}">${c.nome} (${c.tipo==='cpa_usd'?'$ '+c.cpa:'R$ '+c.cpa})</option>`).join('');
+  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.map(c=>`<option value="${c.id}">${c.nome} ($ ${c.cpa})</option>`).join('');
+  document.getElementById('hist-proj-fil').innerHTML='<option value="">Todos os projetos</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
 }
 function saveDolar(){dolar=parseFloat(document.getElementById('cfg-dolar').value)||5.27;localStorage.setItem('ig_dolar',dolar);renderCasas();log('Cotação: R$ '+dolar.toFixed(2));}
 function exportJSON(){
@@ -614,11 +666,10 @@ function importJSON(input){
       if(d.casas)casas=d.casas;if(d.projetos)projetos=d.projetos;if(d.ftds)ftds=d.ftds;if(d.dolar)dolar=d.dolar;
       save();renderCasas();renderProjetos();renderFTDs();updateSelects();
       log('Backup importado');alert('Dados importados com sucesso!');
-    }catch(err){alert('Erro ao importar: '+err.message);}
+    }catch(err){alert('Erro: '+err.message);}
   };
   r.readAsText(input.files[0]);
 }
-
 const td=new Date().toISOString().split('T')[0];
 document.getElementById('dt-i').value=td;
 document.getElementById('dt-f').value=td;
