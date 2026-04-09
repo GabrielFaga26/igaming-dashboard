@@ -93,6 +93,10 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 .toggle input:checked+.toggle-slider:before{transform:translateX(16px);background:#fff}
 .periodo-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:flex-end;margin-bottom:8px}
 @media(max-width:500px){.periodo-row{grid-template-columns:1fr 1fr}}
+/* currency toggle */
+.cur-toggle{display:flex;background:#141414;border:1px solid #222;border-radius:8px;overflow:hidden}
+.cur-btn{padding:5px 14px;font-size:12px;border:none;background:transparent;color:#666;cursor:pointer;font-family:inherit;transition:all .15s}
+.cur-btn.active{background:#185FA5;color:#fff}
 </style>
 </head>
 <body>
@@ -104,7 +108,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div style="font-size:12px;color:#444;margin-top:2px" id="last-up">—</div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <select id="dolar-sel" style="width:auto;font-size:12px;padding:6px 10px" onchange="dolar=parseFloat(this.value);renderCasas()">
+    <select id="dolar-sel" style="width:auto;font-size:12px;padding:6px 10px" onchange="dolar=parseFloat(this.value);renderCasas();calcular()">
       <option value="5.27">$ 1 = R$ 5,27</option>
       <option value="5.50">$ 1 = R$ 5,50</option>
       <option value="5.80">$ 1 = R$ 5,80</option>
@@ -131,6 +135,12 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div><label>De</label><input type="date" id="dt-i" style="width:145px"/></div>
     <div><label>Até</label><input type="date" id="dt-f" style="width:145px"/></div>
     <button class="btn bp" style="align-self:flex-end" onclick="calcular()">Calcular</button>
+    <div style="align-self:flex-end">
+      <div class="cur-toggle">
+        <button class="cur-btn active" id="btn-brl" onclick="setCurrency('BRL')">R$</button>
+        <button class="cur-btn" id="btn-usd" onclick="setCurrency('USD')">USD</button>
+      </div>
+    </div>
     <span id="import-status" style="font-size:12px;color:#444;align-self:flex-end"></span>
   </div>
 
@@ -152,11 +162,12 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 
   <div class="row2">
     <div class="card">
-      <div class="ch"><span class="ct">FTDs por casa</span><span class="pill pb" id="periodo-badge">—</span></div>
-      <div style="overflow-x:auto">
+      <div class="ch"><span class="ct">FTDs por casa</span><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="pill pb" id="periodo-badge">—</span><div class="cur-toggle"><button class="cur-btn active" id="btn-lista" onclick="setCasaView('lista')">Lista</button><button class="cur-btn" id="btn-grafico" onclick="setCasaView('grafico')">Gráfico</button></div></div></div>
+      <div id="casa-lista-view" style="overflow-x:auto">
         <table><thead><tr><th>Casa</th><th>FTDs</th><th>Receita</th><th>%</th></tr></thead>
         <tbody id="tbl-por-casa"><tr><td colspan="4" class="empty">Calcule as métricas</td></tr></tbody></table>
       </div>
+      <div id="casa-grafico-view" style="display:none;position:relative;height:220px"><canvas id="chart-casas" role="img" aria-label="FTDs por casa">FTDs por casa.</canvas></div>
     </div>
     <div class="card">
       <div class="ch"><span class="ct">Investimento por dia</span></div>
@@ -246,11 +257,11 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
       </div>
       <div class="sheet-block">
         <div class="sheet-block-title">Planilha de Leads</div>
-        <div style="font-size:11px;color:#444;margin-bottom:10px">Col A = ID Telegram · Col B = Data · Col C = Data depósito</div>
+        <div style="font-size:11px;color:#444;margin-bottom:10px">Col A = ID Telegram · Col B = Data entrada · Col C = Data depósito</div>
         <div class="fg" style="margin-bottom:6px">
           <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" id="p-leads-id" placeholder="Cole a URL ou o ID"/></div>
           <div><label>Nome exato da aba</label><input type="text" id="p-leads-aba" placeholder="Ex: Alan - Mexico"/></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('leads','p-leads-id','p-leads-aba','leads-test-status')">Testar</button></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('p-leads-id','p-leads-aba','leads-test-status')">Testar</button></div>
         </div>
         <div id="leads-test-status" style="display:none"></div>
       </div>
@@ -259,11 +270,11 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
           <span>Contas de Anúncio (Facebook Ads)</span>
           <button class="btn bs" onclick="addContaBlock('contas-anuncio-form')">+ Adicionar conta</button>
         </div>
-        <div style="font-size:11px;color:#444;margin-bottom:10px">Col A = Date · Col B = Campaign Name · Col C = Spend (número puro, sem símbolo)</div>
+        <div style="font-size:11px;color:#444;margin-bottom:10px">Col A = Date · Col B = Campaign Name · Col C = Spend (número puro)</div>
         <div id="contas-anuncio-form">
           <div class="acc-block">
             <div class="fg" style="margin-bottom:6px">
-              <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
+              <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
               <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB CA_3325"/></div>
               <div><label>Filtro campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
               <div><label>Moeda dos valores</label>
@@ -325,7 +336,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
       <span style="font-size:13px;color:#bbb">Ativar acordos por período</span>
     </div>
     <div id="ec-periodos-section" style="display:none">
-      <div style="font-size:11px;color:#555;margin-bottom:10px">O CPA vigente na data do lançamento será usado automaticamente. Se não houver período, usa o CPA padrão acima.</div>
+      <div style="font-size:11px;color:#555;margin-bottom:10px">O CPA da data do lançamento é usado automaticamente. Se não cair em nenhum período, usa o CPA padrão.</div>
       <div id="ec-periodos-list"></div>
       <button class="btn bs bgreen" onclick="addPeriodo()" style="margin-top:4px">+ Adicionar período</button>
     </div>
@@ -349,7 +360,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
       <div class="fg" style="margin-bottom:6px">
         <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" id="ep-leads-id"/></div>
         <div><label>Aba</label><input type="text" id="ep-leads-aba"/></div>
-        <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('leads','ep-leads-id','ep-leads-aba','ep-leads-status')">Testar</button></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('ep-leads-id','ep-leads-aba','ep-leads-status')">Testar</button></div>
       </div>
       <div id="ep-leads-status" style="display:none"></div>
     </div>
@@ -370,7 +381,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 </div>
 <script>
 let casas=[],projetos=[],ftds=[],leads=[],investData=[],logs=[];
-let dolar=5.27,invChart=null,editCasaId=null,editProjId=null;
+let dolar=5.27,invChart=null,editCasaId=null,editProjId=null,currency='BRL';
 
 function load(){
   try{casas=JSON.parse(localStorage.getItem('ig_casas')||'[]')}catch(e){casas=[]}
@@ -402,8 +413,21 @@ function aba(el,id){
   el.classList.add('active');
   document.getElementById('sec-'+id).classList.add('active');
 }
+
+// CURRENCY
+function setCurrency(c){
+  currency=c;
+  document.getElementById('btn-brl').classList.toggle('active',c==='BRL');
+  document.getElementById('btn-usd').classList.toggle('active',c==='USD');
+  calcular();
+}
+function fmt(brlValue){
+  if(currency==='USD') return'$ '+(brlValue/dolar).toFixed(2);
+  return'R$ '+parseFloat(brlValue).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function fmtBRL(v){return'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function fmtUSD(v){return'$ '+parseFloat(v).toFixed(2)}
+
 function toYMD(s){
   if(!s)return'';s=s.trim();
   if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.substring(0,10);
@@ -429,15 +453,13 @@ function setStatus(elId,msg,ok){
 }
 function closeModal(id){document.getElementById(id).style.display='none';}
 
-// CPA vigente na data (considera períodos se existirem)
-function getCPAForDate(casa, dateStr){
+// CPA por data
+function getCPAForDate(casa,dateStr){
   if(!casa)return 0;
-  if(casa.usePeriodos && casa.periodos && casa.periodos.length){
+  if(casa.usePeriodos&&casa.periodos&&casa.periodos.length){
     const ymd=toYMD(dateStr)||dateStr;
-    // find matching period: from <= date && (to empty or date <= to)
     const match=casa.periodos.find(p=>{
-      const from=p.from||'';
-      const to=p.to||'';
+      const from=p.from||'';const to=p.to||'';
       return ymd>=from&&(!to||ymd<=to);
     });
     if(match)return parseFloat(match.cpa)||0;
@@ -445,8 +467,8 @@ function getCPAForDate(casa, dateStr){
   return parseFloat(casa.cpa)||0;
 }
 
-// SHEETS TESTING
-async function testarSheet(tipo,idField,abaField,statusField){
+// TESTAR SHEETS
+async function testarSheet(idField,abaField,statusField){
   const idRaw=document.getElementById(idField).value.trim();
   const abaNome=document.getElementById(abaField).value.trim();
   if(!idRaw||!abaNome){setStatus(statusField,'Preencha ID e aba',false);return;}
@@ -475,7 +497,6 @@ async function testarContaBlock(btn){
     const text=await resp.text();
     if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
     const rows=parseCSV(text);
-    // preview col C sample
     const sample=rows.slice(0,3).map(r=>r[2]||'').filter(Boolean);
     st.textContent=`✓ OK — ${rows.length} linhas. Amostra col C: ${sample.join(', ')||'vazio'}`;
     st.style.color='#4ade80';
@@ -531,8 +552,19 @@ async function importarTudo(){
         const rows=parseCSV(await resp.text());
         rows.forEach(r=>{
           if(!r[0])return;
-          const dep=(r[2]||'').trim();
-          leads.push({tid:r[0],data:r[1]||'',deposito:dep,ftdReal:!!(dep&&dep!=='0'&&dep.toLowerCase()!=='false'),projId:p.id,projNome:p.nome,opNome:p.op});
+          const dataEntrada=(r[1]||'').trim();
+          const dataDeposito=(r[2]||'').trim();
+          // ftdReal = col C tem valor que parece uma data (dd/mm/yyyy ou yyyy-mm-dd)
+          const isDate=v=>/\d{2}\/\d{2}\/\d{4}/.test(v)||/\d{4}-\d{2}-\d{2}/.test(v);
+          const ftdReal=!!(dataDeposito&&isDate(dataDeposito));
+          leads.push({
+            tid:r[0],
+            data:dataEntrada,       // col B = data entrada (usado para filtro de leads)
+            deposito:dataDeposito,  // col C = data depósito (usado para filtro de depósitos)
+            dataDeposito:toYMD(dataDeposito), // normalizado para comparação
+            ftdReal,
+            projId:p.id,projNome:p.nome,opNome:p.op
+          });
           lT++;
         });
         log(`Leads "${p.nome}": ${rows.length} linhas`);
@@ -550,11 +582,9 @@ async function importarTudo(){
         rows.forEach(r=>{
           const camp=(r[1]||'').toLowerCase();
           if(filtro&&!camp.includes(filtro))return;
-          // strip any currency symbols and parse
           const raw=(r[2]||'').replace(/[^0-9.,\-]/g,'').replace(',','.');
           let spend=parseFloat(raw)||0;
           if(!spend)return;
-          // convert to BRL if USD
           if(moeda==='USD')spend=spend*dolar;
           investData.push({data:r[0]||'',spend,projId:p.id,projNome:p.nome,opNome:p.op});
           iT+=spend;iP+=spend;
@@ -565,13 +595,12 @@ async function importarTudo(){
   }
   save();
   document.getElementById('last-up').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
-  document.getElementById('leads-badge') && (document.getElementById('leads-badge').textContent=lT+' leads');
   st.textContent=`${lT} leads · R$ ${iT.toFixed(2)}`;
   calcular();
   log('Concluído — '+lT+' leads, R$ '+iT.toFixed(2));
 }
 
-// CALCULAR
+// FILTRAR DADOS
 function getFilteredData(visOverride){
   const di=document.getElementById('dt-i').value;
   const df=document.getElementById('dt-f').value;
@@ -581,13 +610,32 @@ function getFilteredData(visOverride){
     if(vis.startsWith('op:')){const o=vis.slice(3);mL=mL.filter(l=>l.opNome===o);mI=mI.filter(i=>i.opNome===o);mF=mF.filter(f=>f.opNome===o);}
     else{const id=parseInt(vis.slice(5));mL=mL.filter(l=>l.projId===id);mI=mI.filter(i=>i.projId===id);mF=mF.filter(f=>f.projId===id);}
   }
-  if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
-  if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
-  return{mL,mI,mF};
+  // leads filtrados pela data de ENTRADA (col B)
+  if(di)mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});
+  if(df)mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});
+  // investimento filtrado pela data
+  if(di)mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});
+  if(df)mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});
+  // FTDs lançados filtrados pela data
+  if(di)mF=mF.filter(f=>f.data>=di);
+  if(df)mF=mF.filter(f=>f.data<=df);
+
+  // depósitos sheet: leads que TÊM depósito (col C) dentro do período
+  // critério B: usa a DATA DO DEPÓSITO (col C) para filtrar, não a data de entrada
+  let mDeps=leads;
+  if(vis){
+    if(vis.startsWith('op:')){const o=vis.slice(3);mDeps=mDeps.filter(l=>l.opNome===o);}
+    else{const id=parseInt(vis.slice(5));mDeps=mDeps.filter(l=>l.projId===id);}
+  }
+  mDeps=mDeps.filter(l=>l.ftdReal);
+  if(di)mDeps=mDeps.filter(l=>l.dataDeposito&&l.dataDeposito>=di);
+  if(df)mDeps=mDeps.filter(l=>l.dataDeposito&&l.dataDeposito<=df);
+
+  return{mL,mI,mF,tDeps:mDeps.length};
 }
 
-function calcMetrics(mL,mI,mF){
-  const tL=mL.length,tD=mL.filter(l=>l.ftdReal).length,tF=mF.reduce((s,f)=>s+f.qtd,0);
+function calcMetrics(mL,mI,mF,tDeps){
+  const tL=mL.length,tF=mF.reduce((s,f)=>s+f.qtd,0);
   const inv=mI.reduce((s,i)=>s+i.spend,0);
   const conv=tL>0?(tF/tL*100).toFixed(1)+'%':'—';
   const porCasa={};
@@ -600,31 +648,32 @@ function calcMetrics(mL,mI,mF){
   const roi=inv>0?rec/inv:0;
   const cftd=tF>0?inv/tF:0;
   const cpl=tL>0?inv/tL:0;
-  return{tL,tD,tF,inv,conv,porCasa,rec,lucro,roi,cftd,cpl};
+  return{tL,tD:tDeps!==undefined?tDeps:0,tF,inv,conv,porCasa,rec,lucro,roi,cftd,cpl};
 }
 
 function calcular(){
-  const {mL,mI,mF}=getFilteredData();
-  const m=calcMetrics(mL,mI,mF);
-  document.getElementById('h-inv').textContent=m.inv>0?fmtBRL(m.inv):'—';
+  const {mL,mI,mF,tDeps}=getFilteredData();
+  const m=calcMetrics(mL,mI,mF,tDeps);
+  document.getElementById('h-inv').textContent=m.inv>0?fmt(m.inv):'—';
   document.getElementById('h-leads').textContent=m.tL.toLocaleString('pt-BR');
   document.getElementById('h-ftds').textContent=m.tF.toLocaleString('pt-BR');
-  document.getElementById('h-rec').textContent=m.rec>0?fmtBRL(m.rec):'—';
+  document.getElementById('h-rec').textContent=m.rec>0?fmt(m.rec):'—';
   const lucroEl=document.getElementById('h-lucro');
-  lucroEl.textContent=m.inv>0?fmtBRL(m.lucro):'—';
+  lucroEl.textContent=m.inv>0?fmt(m.lucro):'—';
   lucroEl.style.color=m.lucro>=0?'#4ade80':'#f87171';
   document.getElementById('h-roi').textContent=m.inv>0?m.roi.toFixed(2)+'x':'—';
   document.getElementById('h-roi-card').className='hero-m '+(m.inv>0?(m.roi>=1?'roi-pos':'roi-neg'):'');
   document.getElementById('m-deps').textContent=m.tD.toLocaleString('pt-BR');
   document.getElementById('m-conv').textContent=m.conv;
-  document.getElementById('m-cftd').textContent=m.cftd>0?fmtBRL(m.cftd):'—';
-  document.getElementById('m-cpl').textContent=m.cpl>0?fmtBRL(m.cpl):'—';
+  document.getElementById('m-cftd').textContent=m.cftd>0?fmt(m.cftd):'—';
+  document.getElementById('m-cpl').textContent=m.cpl>0?fmt(m.cpl):'—';
   const di=document.getElementById('dt-i').value,df=document.getElementById('dt-f').value;
   document.getElementById('periodo-badge').textContent=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
   const rows=Object.entries(m.porCasa).sort((a,b)=>b[1].receita-a[1].receita);
+  if(casaView==='grafico')renderCasasChart(m.porCasa);
   document.querySelector('#tbl-por-casa').innerHTML=rows.length?rows.map(([nome,v])=>{
     const pct=m.rec>0?(v.receita/m.rec*100).toFixed(1)+'%':'—';
-    return`<tr><td>${nome}</td><td style="font-weight:500">${v.qtd}</td><td class="num" style="color:#4ade80">${fmtBRL(v.receita)}</td><td><span class="pill pg">${pct}</span></td></tr>`;
+    return`<tr><td>${nome}</td><td style="font-weight:500">${v.qtd}</td><td class="num" style="color:#4ade80">${fmt(v.receita)}</td><td><span class="pill pg">${pct}</span></td></tr>`;
   }).join(''):'<tr><td colspan="4" class="empty">Sem lançamentos</td></tr>';
   renderChartInv(mI);
   renderBreakdown();
@@ -640,21 +689,19 @@ function renderBreakdown(){
   sec.style.display='block';
   const di=document.getElementById('dt-i').value,df=document.getElementById('dt-f').value;
   document.getElementById('proj-breakdown-cards').innerHTML=opProjs.map(p=>{
-    let mL=leads.filter(l=>l.projId===p.id),mI=investData.filter(i=>i.projId===p.id),mF=ftds.filter(f=>f.projId===p.id);
-    if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
-    if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
-    const m=calcMetrics(mL,mI,mF);
+    const {mL,mI,mF,tDeps}=getFilteredData('proj:'+p.id);
+    const m=calcMetrics(mL,mI,mF,tDeps);
     return`<div class="proj-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
         <span style="font-size:13px;font-weight:500;color:#ccc">${p.nome}</span>
         <span class="pill pb" style="font-size:10px">${p.op}</span>
       </div>
       <div class="proj-mini">
-        <div class="pm"><div class="pm-l">Investimento</div><div class="pm-v b">${m.inv>0?fmtBRL(m.inv):'—'}</div></div>
+        <div class="pm"><div class="pm-l">Investimento</div><div class="pm-v b">${m.inv>0?fmt(m.inv):'—'}</div></div>
         <div class="pm"><div class="pm-l">Leads</div><div class="pm-v">${m.tL.toLocaleString('pt-BR')}</div></div>
         <div class="pm"><div class="pm-l">FTDs</div><div class="pm-v">${m.tF}</div></div>
-        <div class="pm"><div class="pm-l">Receita</div><div class="pm-v g">${m.rec>0?fmtBRL(m.rec):'—'}</div></div>
-        <div class="pm"><div class="pm-l">Lucro</div><div class="pm-v ${m.lucro>=0?'g':'r'}">${m.inv>0?fmtBRL(m.lucro):'—'}</div></div>
+        <div class="pm"><div class="pm-l">Receita</div><div class="pm-v g">${m.rec>0?fmt(m.rec):'—'}</div></div>
+        <div class="pm"><div class="pm-l">Lucro</div><div class="pm-v ${m.lucro>=0?'g':'r'}">${m.inv>0?fmt(m.lucro):'—'}</div></div>
         <div class="pm"><div class="pm-l">ROI</div><div class="pm-v ${m.roi>=1?'g':m.inv>0?'r':''}">${m.inv>0?m.roi.toFixed(2)+'x':'—'}</div></div>
       </div>
     </div>`;
@@ -666,14 +713,14 @@ function renderChartInv(data){
   data.forEach(i=>{const d=toYMD(i.data);if(d)por[d]=(por[d]||0)+i.spend;});
   const keys=Object.keys(por).sort().slice(-14);
   const labels=keys.map(k=>{const p=k.split('-');return p[2]+'/'+p[1];});
-  const vals=keys.map(k=>parseFloat(por[k].toFixed(2)));
+  const vals=keys.map(k=>currency==='USD'?parseFloat((por[k]/dolar).toFixed(2)):parseFloat(por[k].toFixed(2)));
   if(invChart)invChart.destroy();
   invChart=new Chart(document.getElementById('chart-inv'),{
     type:'bar',
-    data:{labels:labels.length?labels:['Sem dados'],datasets:[{label:'R$',data:vals.length?vals:[0],backgroundColor:'#185FA5',borderRadius:4,barPercentage:0.6}]},
+    data:{labels:labels.length?labels:['Sem dados'],datasets:[{label:currency==='USD'?'USD':'R$',data:vals.length?vals:[0],backgroundColor:'#185FA5',borderRadius:4,barPercentage:0.6}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
       x:{ticks:{autoSkip:false,font:{size:10},maxRotation:45,color:'#555'},grid:{display:false},border:{color:'#1e1e1e'}},
-      y:{ticks:{font:{size:10},callback:v=>'R$'+v.toFixed(0),color:'#555'},beginAtZero:true,grid:{color:'#141414'},border:{color:'#1e1e1e'}}
+      y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v.toFixed(0):'R$'+v.toFixed(0),color:'#555'},beginAtZero:true,grid:{color:'#141414'},border:{color:'#1e1e1e'}}
     }}
   });
 }
@@ -716,7 +763,6 @@ async function atualizarDia(){
   if(!data){alert('Selecione uma data primeiro');return;}
   await importarTudo();
 }
-
 function removerFTD(id){ftds=ftds.filter(f=>f.id!==id);save();renderFTDs();calcular();}
 
 function renderFTDs(){
@@ -742,7 +788,7 @@ function renderFTDs(){
         </div>
       </div>
       <table style="font-size:12px">
-        <thead><tr><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA</th><th>Receita USD</th><th>Receita BRL</th><th></th></tr></thead>
+        <thead><tr><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA</th><th>USD</th><th>BRL</th><th></th></tr></thead>
         <tbody>${items.map(f=>`<tr>
           <td><span class="pill pb" style="font-size:10px">${f.projNome}</span></td>
           <td>${f.casaNome}${f.casaGeo?` <span style="color:#555;font-size:11px">(${f.casaGeo})</span>`:''}</td>
@@ -758,7 +804,7 @@ function renderFTDs(){
 }
 
 function exportFTDsExcel(){
-  if(!ftds.length){alert('Nenhum lançamento para exportar');return;}
+  if(!ftds.length){alert('Nenhum lançamento');return;}
   const pf=document.getElementById('hist-proj-fil').value;
   const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
   const rows=[['Data','Operação','Projeto','Casa','Geo','FTDs','CPA (USD)','Receita USD','Receita BRL'],...dados.map(f=>[
@@ -794,17 +840,14 @@ function abrirEditCasa(id){
   document.getElementById('ec-periodos-section').style.display=c.usePeriodos?'block':'none';
   document.getElementById('modal-casa').style.display='flex';
 }
-
 function togglePeriodos(){
   const on=document.getElementById('ec-periodos-toggle').checked;
   document.getElementById('ec-periodos-section').style.display=on?'block':'none';
   if(on&&document.getElementById('ec-periodos-list').children.length===0)addPeriodo();
 }
-
 function renderPeriodosForm(periodos){
-  const el=document.getElementById('ec-periodos-list');
-  el.innerHTML='';
-  periodos.forEach((p,i)=>{
+  const el=document.getElementById('ec-periodos-list');el.innerHTML='';
+  periodos.forEach(p=>{
     const div=document.createElement('div');div.className='periodo-row';
     div.innerHTML=`
       <div><label>CPA (USD)</label><input type="number" class="per-cpa" value="${p.cpa||''}" placeholder="Ex: 25"/></div>
@@ -814,7 +857,6 @@ function renderPeriodosForm(periodos){
     el.appendChild(div);
   });
 }
-
 function addPeriodo(){
   const el=document.getElementById('ec-periodos-list');
   const div=document.createElement('div');div.className='periodo-row';
@@ -825,7 +867,6 @@ function addPeriodo(){
     <div style="display:flex;align-items:flex-end"><button class="btn bs bd" onclick="this.closest('.periodo-row').remove()">×</button></div>`;
   el.appendChild(div);
 }
-
 function salvarEditCasa(){
   if(!editCasaId)return;
   const idx=casas.findIndex(c=>c.id===editCasaId);if(idx<0)return;
@@ -851,12 +892,13 @@ function renderCasas(){
       <div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}</div>
       <div style="font-size:12px;color:#555;margin-top:2px">
         ${c.usePeriodos&&c.periodos&&c.periodos.length
-          ? c.periodos.map(p=>`${fmtUSD(p.cpa)} (${p.from}${p.to?' → '+p.to:' em diante'})`).join(' · ')
-          : fmtUSD(c.cpa)+'/FTD = '+fmtBRL(c.cpa*dolar)}
+          ?c.periodos.map(p=>`${fmtUSD(p.cpa)} (${p.from.split('-').reverse().join('/')}${p.to?' → '+p.to.split('-').reverse().join('/'):''})`).join(' · ')
+          :fmtUSD(c.cpa)+'/FTD = '+fmtBRL(c.cpa*dolar)}
         ${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}
       </div>
     </div>
     <div style="display:flex;gap:6px">
+      <button class="btn bs" onclick="toggleCasaAtiva(${c.id})" title="${c.ativo===false?'Ativar':'Ocultar'}" style="padding:5px 10px;font-size:13px;opacity:${c.ativo===false?0.35:1}" title="${c.ativo===false?'Ativar casa':'Ocultar casa'}">&#9728;</button>
       <button class="btn bs" onclick="abrirEditCasa(${c.id})">Editar</button>
       <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
     </div>
@@ -915,7 +957,6 @@ function abrirEditProj(id){
   if(!p.contas||!p.contas.length)addContaBlock('ep-contas-form');
   document.getElementById('modal-proj').style.display='flex';
 }
-
 function salvarEditProj(){
   if(!editProjId)return;
   const idx=projetos.findIndex(p=>p.id===editProjId);if(idx<0)return;
@@ -954,6 +995,32 @@ function renderProjetos(){
     </div>`).join('');
 }
 
+let casaChart=null,casaView='lista';
+function setCasaView(v){
+  casaView=v;
+  document.getElementById('btn-lista').classList.toggle('active',v==='lista');
+  document.getElementById('btn-grafico').classList.toggle('active',v==='grafico');
+  document.getElementById('casa-lista-view').style.display=v==='lista'?'block':'none';
+  document.getElementById('casa-grafico-view').style.display=v==='grafico'?'block':'none';
+}
+function toggleCasaAtiva(id){
+  const c=casas.find(x=>x.id===id);if(!c)return;
+  c.ativo=c.ativo===false?true:false;
+  save();renderCasas();updateSelects();
+  log((c.ativo?'Casa ativada':'Casa ocultada')+': '+c.nome);
+}
+function renderCasasChart(porCasa){
+  const labels=Object.keys(porCasa);
+  const vals=labels.map(k=>parseFloat((porCasa[k].receita/(currency==='USD'?dolar:1)).toFixed(2)));
+  if(casaChart)casaChart.destroy();
+  casaChart=new Chart(document.getElementById('chart-casas'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Receita',data:vals,backgroundColor:'#185FA5',borderRadius:4,barPercentage:0.6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:10},color:'#555'},grid:{display:false},border:{color:'#1e1e1e'}},
+        y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v:'R$'+v,color:'#555'},beginAtZero:true,grid:{color:'#141414'},border:{color:'#1e1e1e'}}}}
+  });
+}
 function updateSelects(){
   const vs=document.getElementById('vis-sel'),vv=vs.value;
   const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
@@ -961,10 +1028,10 @@ function updateSelects(){
   if(vv)vs.value=vv;
   document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome} (${p.op})</option>`).join('');
   document.getElementById('hist-proj-fil').innerHTML='<option value="">Todos</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
-  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
+  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.filter(c=>c.ativo!==false).map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
 }
 
-function saveDolar(){dolar=parseFloat(document.getElementById('cfg-dolar').value)||5.27;localStorage.setItem('ig_dolar',dolar);renderCasas();log('Cotação: R$ '+dolar.toFixed(2));}
+function saveDolar(){dolar=parseFloat(document.getElementById('cfg-dolar').value)||5.27;localStorage.setItem('ig_dolar',dolar);renderCasas();calcular();log('Cotação: R$ '+dolar.toFixed(2));}
 function exportJSON(){
   const b=new Blob([JSON.stringify({casas,projetos,ftds,dolar},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='igaming-backup.json';a.click();log('Backup exportado');
