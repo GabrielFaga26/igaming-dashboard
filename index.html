@@ -16,8 +16,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab:hover{color:#aaa}
 .tab.active{background:#1e1e1e;color:#fff;font-weight:500;border:1px solid #333}
 .section{display:none}.section.active{display:block}
-
-/* HERO METRICS */
 .hero{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1rem}
 @media(max-width:900px){.hero{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:500px){.hero{grid-template-columns:repeat(2,1fr)}}
@@ -32,56 +30,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hero-m.green .hero-val{color:#4ade80}
 .hero-m.roi-pos .hero-val{color:#4ade80}
 .hero-m.roi-neg .hero-val{color:#f87171}
-
-/* SECONDARY METRICS */
 .sec-mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:1.25rem}
 .sm{background:#111;border-radius:8px;padding:.75rem;border:1px solid #1e1e1e}
 .sm-l{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
 .sm-v{font-size:15px;font-weight:500;color:#bbb}
-
 .card{background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
 .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
 .ct{font-size:14px;font-weight:500;color:#e8e8e8}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
 @media(max-width:640px){.row2{grid-template-columns:1fr}}
-
-/* proj breakdown */
-.proj-breakdown{margin-top:1.5rem}
-.proj-breakdown-title{font-size:13px;color:#555;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.05em}
 .proj-card{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:1rem;margin-bottom:.75rem}
-.proj-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
-.proj-card-name{font-size:13px;font-weight:500;color:#ccc}
 .proj-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
 .pm{background:#0d0d0d;border-radius:6px;padding:.6rem .75rem}
 .pm-l{font-size:10px;color:#444;text-transform:uppercase;margin-bottom:2px}
 .pm-v{font-size:14px;font-weight:500;color:#aaa}
 .pm-v.g{color:#4ade80}.pm-v.b{color:#60a5fa}.pm-v.r{color:#f87171}
-
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{font-size:11px;font-weight:500;color:#555;text-align:left;padding:6px 8px;border-bottom:1px solid #1e1e1e;white-space:nowrap}
 td{padding:7px 8px;border-bottom:1px solid #141414;color:#bbb;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#141414}
-
 .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
 .pg{background:#14532d;color:#4ade80}.pr{background:#450a0a;color:#f87171}
 .pa{background:#431407;color:#fb923c}.pb{background:#0c1a3d;color:#60a5fa}
 .p0{background:#1a1a1a;color:#555}
-
 input,select,textarea{width:100%;padding:8px 10px;border:1px solid #222;border-radius:8px;font-size:13px;background:#141414;color:#e8e8e8;font-family:inherit;outline:none;transition:border .15s}
 input:focus,select:focus{border-color:#333}
 select option{background:#141414}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
 @media(max-width:500px){.fg{grid-template-columns:1fr}}
 label{font-size:12px;color:#666;display:block;margin-bottom:4px}
-
 .btn{padding:8px 16px;border-radius:8px;border:1px solid #2a2a2a;background:#141414;color:#aaa;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
 .btn:hover{background:#1e1e1e;color:#fff}
 .bp{background:#185FA5;color:#fff;border-color:#185FA5}.bp:hover{background:#1a6fc0}
 .bs{padding:5px 12px;font-size:12px}
 .bd{background:#1a0808;color:#f87171;border-color:transparent}.bd:hover{background:#2a0a0a}
 .bgreen{background:#0a1f11;color:#4ade80;border-color:#14532d}.bgreen:hover{background:#0f2a17}
-
 .empty{text-align:center;color:#444;font-size:13px;padding:1.5rem}
 .sbox{background:#141414;border-radius:8px;padding:1rem;border:1px solid #1e1e1e;margin-bottom:.75rem}
 .log-e{font-size:12px;padding:5px 0;border-bottom:1px solid #141414;color:#555;display:flex;justify-content:space-between;gap:8px}
@@ -95,15 +79,20 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 .status-err{background:#1a0808;color:#f87171;border-radius:8px;padding:6px 10px;font-size:12px;margin-top:6px}
 .acc-block{background:#0d0d0d;border-radius:8px;padding:.875rem;margin-bottom:8px;border:1px solid #1e1e1e}
 .day-row{background:#141414;border-radius:8px;padding:.875rem;margin-bottom:8px;border:1px solid #1e1e1e}
-
-/* Config sections */
 .cfg-section{margin-bottom:2rem}
 .cfg-section-title{font-size:16px;font-weight:500;color:#e8e8e8;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #1e1e1e}
-
-/* Edit modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem}
-.modal{background:#111;border:1px solid #2a2a2a;border-radius:12px;padding:1.5rem;width:100%;max-width:680px;max-height:90vh;overflow-y:auto}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:#111;border:1px solid #2a2a2a;border-radius:12px;padding:1.5rem;width:100%;max-width:700px;max-height:90vh;overflow-y:auto}
 .modal-title{font-size:16px;font-weight:500;color:#fff;margin-bottom:1.25rem}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#222;border-radius:20px;cursor:pointer;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#555;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:#185FA5}
+.toggle input:checked+.toggle-slider:before{transform:translateX(16px);background:#fff}
+.periodo-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:flex-end;margin-bottom:8px}
+@media(max-width:500px){.periodo-row{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -134,9 +123,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 <!-- VISÃO GERAL -->
 <div id="sec-overview" class="section active">
   <div style="display:flex;gap:10px;margin-bottom:1.25rem;align-items:flex-end;flex-wrap:wrap">
-    <div>
-      <label>Visualizar</label>
-      <select id="vis-sel" style="min-width:200px" onchange="onVisChange()">
+    <div><label>Visualizar</label>
+      <select id="vis-sel" style="min-width:220px" onchange="onVisChange()">
         <option value="">Todos</option>
       </select>
     </div>
@@ -146,7 +134,6 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <span id="import-status" style="font-size:12px;color:#444;align-self:flex-end"></span>
   </div>
 
-  <!-- HERO -->
   <div class="hero">
     <div class="hero-m accent"><div class="hero-label">Investimento</div><div class="hero-val" id="h-inv">—</div></div>
     <div class="hero-m"><div class="hero-label">Leads</div><div class="hero-val" id="h-leads">—</div></div>
@@ -156,21 +143,19 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div class="hero-m" id="h-roi-card"><div class="hero-label">ROI</div><div class="hero-val" id="h-roi">—</div></div>
   </div>
 
-  <!-- SECONDARY -->
   <div class="sec-mg">
     <div class="sm"><div class="sm-l">Depósitos sheet</div><div class="sm-v" id="m-deps">—</div></div>
     <div class="sm"><div class="sm-l">Conv. lead→FTD</div><div class="sm-v" id="m-conv">—</div></div>
     <div class="sm"><div class="sm-l">Custo por FTD</div><div class="sm-v" id="m-cftd">—</div></div>
     <div class="sm"><div class="sm-l">CPL</div><div class="sm-v" id="m-cpl">—</div></div>
-    <div class="sm"><div class="sm-l">CPL real (Telegram)</div><div class="sm-v" id="m-cplr">—</div></div>
   </div>
 
   <div class="row2">
     <div class="card">
       <div class="ch"><span class="ct">FTDs por casa</span><span class="pill pb" id="periodo-badge">—</span></div>
       <div style="overflow-x:auto">
-        <table><thead><tr><th>Casa</th><th>FTDs</th><th>CPA</th><th>Receita</th><th>%</th></tr></thead>
-        <tbody id="tbl-por-casa"><tr><td colspan="5" class="empty">Calcule as métricas</td></tr></tbody></table>
+        <table><thead><tr><th>Casa</th><th>FTDs</th><th>Receita</th><th>%</th></tr></thead>
+        <tbody id="tbl-por-casa"><tr><td colspan="4" class="empty">Calcule as métricas</td></tr></tbody></table>
       </div>
     </div>
     <div class="card">
@@ -179,18 +164,9 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <!-- BREAKDOWN POR PROJETO (só aparece quando operação selecionada) -->
   <div id="proj-breakdown-section" style="display:none">
-    <div class="proj-breakdown-title">Breakdown por projeto</div>
+    <div style="font-size:12px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Breakdown por projeto</div>
     <div id="proj-breakdown-cards"></div>
-  </div>
-
-  <div class="card">
-    <div class="ch"><span class="ct">Leads importados</span><span id="leads-badge" class="pill p0">0</span></div>
-    <div style="overflow-x:auto">
-      <table><thead><tr><th>ID Telegram</th><th>Data</th><th>Operação / Projeto</th><th>Depósito</th><th>Data depósito</th></tr></thead>
-      <tbody id="tbl-leads"><tr><td colspan="5" class="empty">Clique em "Atualizar dados"</td></tr></tbody></table>
-    </div>
   </div>
 </div>
 
@@ -199,21 +175,21 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
   <div class="card">
     <div class="ch"><span class="ct">Lançamento do dia</span></div>
     <div class="fg">
-      <div><label>Projeto</label><select id="ftd-proj"><option value="">Selecione...</option></select></div>
-      <div><label>Data</label><input type="date" id="ftd-data"/></div>
+      <div><label>Projeto</label><select id="ftd-proj" onchange="calcPrev()"><option value="">Selecione...</option></select></div>
+      <div><label>Data</label><input type="date" id="ftd-data" onchange="calcPrev()"/></div>
       <div><label>Casa de apostas</label><select id="ftd-casa" onchange="calcPrev()"><option value="">Selecione...</option></select></div>
       <div><label>Qtd. FTDs confirmados</label><input type="number" id="ftd-qtd" placeholder="Ex: 50" min="0" oninput="calcPrev()"/></div>
     </div>
     <div style="background:#0d0d0d;border-radius:8px;padding:1rem;margin-bottom:1rem;border:1px solid #1e1e1e">
       <div style="font-size:12px;color:#555;margin-bottom:8px">Prévia</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px">
-        <div><div style="font-size:11px;color:#555">CPA unitário</div><div style="font-weight:500;font-size:15px;color:#e8e8e8" id="p-cpa">—</div></div>
-        <div><div style="font-size:11px;color:#555">Receita total</div><div style="font-weight:500;font-size:15px;color:#4ade80" id="p-rec">—</div></div>
-        <div><div style="font-size:11px;color:#555">Em USD</div><div style="font-weight:500;font-size:15px;color:#60a5fa" id="p-usd">—</div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">
+        <div><div style="font-size:11px;color:#555">CPA vigente na data</div><div style="font-weight:500;font-size:15px;color:#60a5fa" id="p-cpa">—</div></div>
+        <div><div style="font-size:11px;color:#555">Total em USD</div><div style="font-weight:500;font-size:15px;color:#4ade80" id="p-usd">—</div></div>
       </div>
     </div>
     <button class="btn bp" onclick="salvarFTD()">Salvar lançamento</button>
   </div>
+
   <div class="card">
     <div class="ch">
       <span class="ct">Histórico de dias</span>
@@ -221,7 +197,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
         <select id="hist-proj-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs()">
           <option value="">Todos</option>
         </select>
-        <button class="btn bs bgreen" onclick="atualizarDia()">↻ Atualizar dados do dia</button>
+        <button class="btn bs bgreen" onclick="exportFTDsExcel()">Exportar Excel</button>
+        <button class="btn bs bp" onclick="atualizarDia()">↻ Atualizar dados do dia</button>
       </div>
     </div>
     <div id="hist-dias"><div class="empty">Nenhum lançamento ainda</div></div>
@@ -231,7 +208,6 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 <!-- CONFIGURAÇÕES -->
 <div id="sec-config" class="section">
 
-  <!-- COTAÇÃO -->
   <div class="cfg-section">
     <div class="cfg-section-title">Cotação do dólar</div>
     <div class="card">
@@ -242,19 +218,17 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <!-- CASAS DE APOSTAS -->
   <div class="cfg-section">
     <div class="cfg-section-title">Casas de apostas</div>
     <div class="card">
       <div class="fg">
         <div><label>Nome</label><input type="text" id="c-nome" placeholder="Ex: Melbet"/></div>
-        <div><label>Valor CPA (USD por FTD)</label><input type="number" id="c-cpa" placeholder="Ex: 25"/></div>
+        <div><label>CPA padrão (USD por FTD)</label><input type="number" id="c-cpa" placeholder="Ex: 25"/></div>
         <div><label>Geo / País</label><input type="text" id="c-geo" placeholder="Ex: Mexico"/></div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn bp" onclick="addCasa()">+ Adicionar</button>
         <button class="btn" onclick="clearCasa()">Limpar</button>
-        <button class="btn bs bgreen" onclick="exportCasasExcel()" style="margin-left:auto">Exportar Excel</button>
       </div>
     </div>
     <div class="card">
@@ -263,64 +237,63 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <!-- OPERAÇÕES -->
   <div class="cfg-section">
     <div class="cfg-section-title">Operações e Projetos</div>
     <div class="card">
       <div class="fg">
-        <div><label>Nome da operação</label><input type="text" id="op-nome" placeholder="Ex: Alan"/></div>
-        <div><label>Nome do projeto</label><input type="text" id="p-nome" placeholder="Ex: Alan - Mexico"/></div>
+        <div><label>Operação (nome do expert)</label><input type="text" id="op-nome" placeholder="Ex: Alan"/></div>
+        <div><label>Projeto</label><input type="text" id="p-nome" placeholder="Ex: Alan - Mexico"/></div>
       </div>
-
       <div class="sheet-block">
         <div class="sheet-block-title">Planilha de Leads</div>
         <div style="font-size:11px;color:#444;margin-bottom:10px">Col A = ID Telegram · Col B = Data · Col C = Data depósito</div>
         <div class="fg" style="margin-bottom:6px">
-          <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" id="p-leads-id" placeholder="Cole a URL ou só o ID"/></div>
+          <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" id="p-leads-id" placeholder="Cole a URL ou o ID"/></div>
           <div><label>Nome exato da aba</label><input type="text" id="p-leads-aba" placeholder="Ex: Alan - Mexico"/></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('leads')">Testar</button></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('leads','p-leads-id','p-leads-aba','leads-test-status')">Testar</button></div>
         </div>
         <div id="leads-test-status" style="display:none"></div>
       </div>
-
       <div class="sheet-block">
         <div class="sheet-block-title">
           <span>Contas de Anúncio (Facebook Ads)</span>
-          <button class="btn bs" onclick="addContaAnuncio()">+ Adicionar conta</button>
+          <button class="btn bs" onclick="addContaBlock('contas-anuncio-form')">+ Adicionar conta</button>
         </div>
-        <div style="font-size:11px;color:#444;margin-bottom:10px">Col A = Date · Col B = Campaign Name · Col C = Spend</div>
+        <div style="font-size:11px;color:#444;margin-bottom:10px">Col A = Date · Col B = Campaign Name · Col C = Spend (número puro, sem símbolo)</div>
         <div id="contas-anuncio-form">
           <div class="acc-block">
             <div class="fg" style="margin-bottom:6px">
               <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
               <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB CA_3325"/></div>
-              <div><label>Filtro de campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+              <div><label>Filtro campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+              <div><label>Moeda dos valores</label>
+                <select class="inv-moeda">
+                  <option value="BRL">Real (BRL) — já em R$</option>
+                  <option value="USD">Dólar (USD) — converte pelo câmbio</option>
+                </select>
+              </div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn bs" onclick="testarContaAnuncio(this)">Testar</button>
+              <button class="btn bs" onclick="testarContaBlock(this)">Testar conexão</button>
               <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span>
             </div>
           </div>
         </div>
       </div>
-
       <div style="display:flex;gap:8px">
         <button class="btn bp" onclick="addProjeto()">+ Adicionar projeto</button>
         <button class="btn" onclick="clearProjeto()">Limpar</button>
       </div>
     </div>
-
     <div class="card">
       <div class="ch"><span class="ct">Projetos cadastrados</span><span id="proj-count" class="pill pb">0</span></div>
       <div id="lista-projetos"><div class="empty">Nenhum projeto cadastrado</div></div>
     </div>
   </div>
 
-  <!-- BACKUP -->
   <div class="cfg-section">
-    <div class="cfg-section-title">Backup dos dados</div>
+    <div class="cfg-section-title">Backup</div>
     <div class="card">
-      <p style="font-size:13px;color:#555;margin-bottom:1rem">Exporte casas, projetos e FTDs. Importe para restaurar.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn bs" onclick="exportJSON()">Exportar JSON</button>
         <button class="btn bs" onclick="document.getElementById('imp-file').click()">Importar JSON</button>
@@ -329,42 +302,67 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <!-- LOG -->
   <div class="cfg-section">
-    <div class="cfg-section-title">Log de atividades</div>
-    <div class="card">
-      <div id="log-area" style="max-height:240px;overflow-y:auto"><div class="empty">Nenhuma atividade</div></div>
+    <div class="cfg-section-title">Log</div>
+    <div class="card"><div id="log-area" style="max-height:200px;overflow-y:auto"><div class="empty">Nenhuma atividade</div></div></div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR CASA -->
+<div class="modal-overlay" id="modal-casa" style="display:none" onclick="if(event.target===this)closeModal('modal-casa')">
+  <div class="modal">
+    <div class="modal-title">Editar casa de apostas</div>
+    <div class="fg">
+      <div><label>Nome</label><input type="text" id="ec-nome"/></div>
+      <div><label>Geo / País</label><input type="text" id="ec-geo"/></div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <label>CPA padrão (USD) — usado quando não há período específico</label>
+      <input type="number" id="ec-cpa" placeholder="Ex: 25"/>
+    </div>
+    <div class="toggle-row">
+      <label class="toggle"><input type="checkbox" id="ec-periodos-toggle" onchange="togglePeriodos()"/><span class="toggle-slider"></span></label>
+      <span style="font-size:13px;color:#bbb">Ativar acordos por período</span>
+    </div>
+    <div id="ec-periodos-section" style="display:none">
+      <div style="font-size:11px;color:#555;margin-bottom:10px">O CPA vigente na data do lançamento será usado automaticamente. Se não houver período, usa o CPA padrão acima.</div>
+      <div id="ec-periodos-list"></div>
+      <button class="btn bs bgreen" onclick="addPeriodo()" style="margin-top:4px">+ Adicionar período</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1.25rem">
+      <button class="btn bp" onclick="salvarEditCasa()">Salvar</button>
+      <button class="btn" onclick="closeModal('modal-casa')">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL EDITAR PROJETO -->
-<div class="modal-overlay" id="edit-modal" style="display:none" onclick="if(event.target===this)closeEdit()">
+<div class="modal-overlay" id="modal-proj" style="display:none" onclick="if(event.target===this)closeModal('modal-proj')">
   <div class="modal">
     <div class="modal-title">Editar projeto</div>
     <div class="fg">
-      <div><label>Nome da operação</label><input type="text" id="edit-op-nome"/></div>
-      <div><label>Nome do projeto</label><input type="text" id="edit-p-nome"/></div>
+      <div><label>Operação</label><input type="text" id="ep-op"/></div>
+      <div><label>Projeto</label><input type="text" id="ep-nome"/></div>
     </div>
     <div class="sheet-block">
       <div class="sheet-block-title">Planilha de Leads</div>
       <div class="fg" style="margin-bottom:6px">
-        <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" id="edit-leads-id"/></div>
-        <div><label>Aba</label><input type="text" id="edit-leads-aba"/></div>
-        <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarEditSheet()">Testar</button></div>
+        <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" id="ep-leads-id"/></div>
+        <div><label>Aba</label><input type="text" id="ep-leads-aba"/></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('leads','ep-leads-id','ep-leads-aba','ep-leads-status')">Testar</button></div>
       </div>
-      <div id="edit-leads-status" style="display:none"></div>
+      <div id="ep-leads-status" style="display:none"></div>
     </div>
     <div class="sheet-block">
       <div class="sheet-block-title">
         <span>Contas de Anúncio</span>
-        <button class="btn bs" onclick="addEditConta()">+ Adicionar</button>
+        <button class="btn bs" onclick="addContaBlock('ep-contas-form')">+ Adicionar</button>
       </div>
-      <div id="edit-contas-form"></div>
+      <div id="ep-contas-form"></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:1rem">
-      <button class="btn bp" onclick="salvarEdit()">Salvar alterações</button>
-      <button class="btn" onclick="closeEdit()">Cancelar</button>
+      <button class="btn bp" onclick="salvarEditProj()">Salvar</button>
+      <button class="btn" onclick="closeModal('modal-proj')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -372,7 +370,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 </div>
 <script>
 let casas=[],projetos=[],ftds=[],leads=[],investData=[],logs=[];
-let dolar=5.27,invChart=null,editingId=null;
+let dolar=5.27,invChart=null,editCasaId=null,editProjId=null;
 
 function load(){
   try{casas=JSON.parse(localStorage.getItem('ig_casas')||'[]')}catch(e){casas=[]}
@@ -429,38 +427,42 @@ function setStatus(elId,msg,ok){
   const el=document.getElementById(elId);if(!el)return;
   el.style.display='block';el.className=ok?'status-ok':'status-err';el.textContent=msg;
 }
+function closeModal(id){document.getElementById(id).style.display='none';}
 
-// SHEETS
-async function testarSheet(tipo){
-  const idRaw=document.getElementById('p-leads-id').value.trim();
-  const abaNome=document.getElementById('p-leads-aba').value.trim();
-  if(!idRaw||!abaNome){setStatus('leads-test-status','Preencha ID e aba',false);return;}
-  setStatus('leads-test-status','Testando...',true);
+// CPA vigente na data (considera períodos se existirem)
+function getCPAForDate(casa, dateStr){
+  if(!casa)return 0;
+  if(casa.usePeriodos && casa.periodos && casa.periodos.length){
+    const ymd=toYMD(dateStr)||dateStr;
+    // find matching period: from <= date && (to empty or date <= to)
+    const match=casa.periodos.find(p=>{
+      const from=p.from||'';
+      const to=p.to||'';
+      return ymd>=from&&(!to||ymd<=to);
+    });
+    if(match)return parseFloat(match.cpa)||0;
+  }
+  return parseFloat(casa.cpa)||0;
+}
+
+// SHEETS TESTING
+async function testarSheet(tipo,idField,abaField,statusField){
+  const idRaw=document.getElementById(idField).value.trim();
+  const abaNome=document.getElementById(abaField).value.trim();
+  if(!idRaw||!abaNome){setStatus(statusField,'Preencha ID e aba',false);return;}
+  setStatus(statusField,'Testando...',true);
   try{
     const resp=await fetch(buildURL(extractId(idRaw),abaNome));
     if(!resp.ok)throw new Error('HTTP '+resp.status);
     const text=await resp.text();
     if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
     const rows=parseCSV(text);
-    setStatus('leads-test-status',`✓ OK — ${rows.length} linhas na aba "${abaNome}"`,true);
-    log('Teste leads OK: '+rows.length+' linhas');
-  }catch(e){setStatus('leads-test-status','Erro: '+e.message,false);}
+    setStatus(statusField,`✓ OK — ${rows.length} linhas na aba "${abaNome}"`,true);
+    log('Teste OK: '+rows.length+' linhas');
+  }catch(e){setStatus(statusField,'Erro: '+e.message,false);}
 }
-async function testarEditSheet(){
-  const idRaw=document.getElementById('edit-leads-id').value.trim();
-  const abaNome=document.getElementById('edit-leads-aba').value.trim();
-  if(!idRaw||!abaNome){setStatus('edit-leads-status','Preencha ID e aba',false);return;}
-  setStatus('edit-leads-status','Testando...',true);
-  try{
-    const resp=await fetch(buildURL(extractId(idRaw),abaNome));
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const text=await resp.text();
-    if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
-    const rows=parseCSV(text);
-    setStatus('edit-leads-status',`✓ OK — ${rows.length} linhas`,true);
-  }catch(e){setStatus('edit-leads-status','Erro: '+e.message,false);}
-}
-async function testarContaAnuncio(btn){
+
+async function testarContaBlock(btn){
   const block=btn.closest('.acc-block');
   const idRaw=block.querySelector('.inv-id').value.trim();
   const abaNome=block.querySelector('.inv-aba').value.trim();
@@ -473,25 +475,46 @@ async function testarContaAnuncio(btn){
     const text=await resp.text();
     if(text.toLowerCase().includes('error'))throw new Error('Aba não encontrada');
     const rows=parseCSV(text);
-    st.textContent=`✓ OK — ${rows.length} linhas`;st.style.color='#4ade80';
+    // preview col C sample
+    const sample=rows.slice(0,3).map(r=>r[2]||'').filter(Boolean);
+    st.textContent=`✓ OK — ${rows.length} linhas. Amostra col C: ${sample.join(', ')||'vazio'}`;
+    st.style.color='#4ade80';
   }catch(e){st.textContent='Erro: '+e.message;st.style.color='#f87171';}
 }
-function addContaAnuncio(container){
-  const c=container||document.getElementById('contas-anuncio-form');
+
+function addContaBlock(containerId){
+  const c=document.getElementById(containerId);
   const div=document.createElement('div');div.className='acc-block';
   div.innerHTML=`<div class="fg" style="margin-bottom:6px">
     <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
     <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB"/></div>
     <div><label>Filtro campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+    <div><label>Moeda dos valores</label>
+      <select class="inv-moeda">
+        <option value="BRL">Real (BRL) — já em R$</option>
+        <option value="USD">Dólar (USD) — converte pelo câmbio</option>
+      </select>
+    </div>
   </div>
   <div style="display:flex;gap:8px">
-    <button class="btn bs" onclick="testarContaAnuncio(this)">Testar</button>
+    <button class="btn bs" onclick="testarContaBlock(this)">Testar</button>
     <button class="btn bs bd" onclick="this.closest('.acc-block').remove()">Remover</button>
     <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span>
   </div>`;
   c.appendChild(div);
 }
-function addEditConta(){addContaAnuncio(document.getElementById('edit-contas-form'));}
+
+function getContasFromForm(formId){
+  const contas=[];
+  document.querySelectorAll('#'+formId+' .acc-block').forEach(block=>{
+    const idRaw=block.querySelector('.inv-id').value.trim();
+    const ab=block.querySelector('.inv-aba').value.trim();
+    const fi=block.querySelector('.inv-filtro').value.trim();
+    const mo=block.querySelector('.inv-moeda').value;
+    if(idRaw&&ab)contas.push({id:extractId(idRaw),aba:ab,filtro:fi,moeda:mo||'BRL'});
+  });
+  return contas;
+}
 
 // IMPORTAR
 async function importarTudo(){
@@ -522,45 +545,41 @@ async function importarTudo(){
         if(!resp.ok)throw new Error('HTTP '+resp.status);
         const rows=parseCSV(await resp.text());
         const filtro=(conta.filtro||'').toLowerCase();
+        const moeda=conta.moeda||'BRL';
         let iP=0;
         rows.forEach(r=>{
           const camp=(r[1]||'').toLowerCase();
           if(filtro&&!camp.includes(filtro))return;
-          const spend=parseFloat(r[2])||0;
+          // strip any currency symbols and parse
+          const raw=(r[2]||'').replace(/[^0-9.,\-]/g,'').replace(',','.');
+          let spend=parseFloat(raw)||0;
           if(!spend)return;
+          // convert to BRL if USD
+          if(moeda==='USD')spend=spend*dolar;
           investData.push({data:r[0]||'',spend,projId:p.id,projNome:p.nome,opNome:p.op});
           iT+=spend;iP+=spend;
         });
-        log(`Invest "${p.nome}"/"${conta.aba}": R$ ${iP.toFixed(2)}`);
+        log(`Invest "${p.nome}"/"${conta.aba}" [${moeda}]: R$ ${iP.toFixed(2)}`);
       }catch(e){log('Erro invest: '+e.message);}
     }
   }
   save();
   document.getElementById('last-up').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
-  document.getElementById('leads-badge').textContent=lT+' leads';
+  document.getElementById('leads-badge') && (document.getElementById('leads-badge').textContent=lT+' leads');
   st.textContent=`${lT} leads · R$ ${iT.toFixed(2)}`;
-  renderLeads();calcular();
+  calcular();
   log('Concluído — '+lT+' leads, R$ '+iT.toFixed(2));
 }
 
 // CALCULAR
-function getFilteredData(){
+function getFilteredData(visOverride){
   const di=document.getElementById('dt-i').value;
   const df=document.getElementById('dt-f').value;
-  const vis=document.getElementById('vis-sel').value;
+  const vis=visOverride!==undefined?visOverride:document.getElementById('vis-sel').value;
   let mL=leads,mI=investData,mF=ftds;
   if(vis){
-    if(vis.startsWith('op:')){
-      const opNome=vis.slice(3);
-      mL=mL.filter(l=>l.opNome===opNome);
-      mI=mI.filter(i=>i.opNome===opNome);
-      mF=mF.filter(f=>f.opNome===opNome);
-    } else {
-      const projId=parseInt(vis.slice(5));
-      mL=mL.filter(l=>l.projId===projId);
-      mI=mI.filter(i=>i.projId===projId);
-      mF=mF.filter(f=>f.projId===projId);
-    }
+    if(vis.startsWith('op:')){const o=vis.slice(3);mL=mL.filter(l=>l.opNome===o);mI=mI.filter(i=>i.opNome===o);mF=mF.filter(f=>f.opNome===o);}
+    else{const id=parseInt(vis.slice(5));mL=mL.filter(l=>l.projId===id);mI=mI.filter(i=>i.projId===id);mF=mF.filter(f=>f.projId===id);}
   }
   if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
   if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
@@ -573,10 +592,8 @@ function calcMetrics(mL,mI,mF){
   const conv=tL>0?(tF/tL*100).toFixed(1)+'%':'—';
   const porCasa={};
   mF.forEach(f=>{
-    // group by casa nome (not geo variant)
-    const key=f.casaNome;
-    if(!porCasa[key])porCasa[key]={qtd:0,receita:0,cpa:f.cpa};
-    porCasa[key].qtd+=f.qtd;porCasa[key].receita+=f.receita;
+    if(!porCasa[f.casaNome])porCasa[f.casaNome]={qtd:0,receita:0};
+    porCasa[f.casaNome].qtd+=f.qtd;porCasa[f.casaNome].receita+=f.receita;
   });
   const rec=Object.values(porCasa).reduce((s,v)=>s+v.receita,0);
   const lucro=rec-inv;
@@ -589,7 +606,6 @@ function calcMetrics(mL,mI,mF){
 function calcular(){
   const {mL,mI,mF}=getFilteredData();
   const m=calcMetrics(mL,mI,mF);
-  // HERO
   document.getElementById('h-inv').textContent=m.inv>0?fmtBRL(m.inv):'—';
   document.getElementById('h-leads').textContent=m.tL.toLocaleString('pt-BR');
   document.getElementById('h-ftds').textContent=m.tF.toLocaleString('pt-BR');
@@ -597,26 +613,19 @@ function calcular(){
   const lucroEl=document.getElementById('h-lucro');
   lucroEl.textContent=m.inv>0?fmtBRL(m.lucro):'—';
   lucroEl.style.color=m.lucro>=0?'#4ade80':'#f87171';
-  const roiEl=document.getElementById('h-roi');
-  roiEl.textContent=m.inv>0?m.roi.toFixed(2)+'x':'—';
-  const roiCard=document.getElementById('h-roi-card');
-  roiCard.className='hero-m '+(m.inv>0?(m.roi>=1?'roi-pos':'roi-neg'):'');
-  // SECONDARY
+  document.getElementById('h-roi').textContent=m.inv>0?m.roi.toFixed(2)+'x':'—';
+  document.getElementById('h-roi-card').className='hero-m '+(m.inv>0?(m.roi>=1?'roi-pos':'roi-neg'):'');
   document.getElementById('m-deps').textContent=m.tD.toLocaleString('pt-BR');
   document.getElementById('m-conv').textContent=m.conv;
   document.getElementById('m-cftd').textContent=m.cftd>0?fmtBRL(m.cftd):'—';
   document.getElementById('m-cpl').textContent=m.cpl>0?fmtBRL(m.cpl):'—';
-  document.getElementById('m-cplr').textContent='—';
-  // PERIODO
   const di=document.getElementById('dt-i').value,df=document.getElementById('dt-f').value;
-  const lbl=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
-  document.getElementById('periodo-badge').textContent=lbl;
-  // TABLE casas
+  document.getElementById('periodo-badge').textContent=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
   const rows=Object.entries(m.porCasa).sort((a,b)=>b[1].receita-a[1].receita);
   document.querySelector('#tbl-por-casa').innerHTML=rows.length?rows.map(([nome,v])=>{
     const pct=m.rec>0?(v.receita/m.rec*100).toFixed(1)+'%':'—';
-    return`<tr><td>${nome}</td><td style="font-weight:500">${v.qtd}</td><td class="num">${fmtUSD(v.cpa)}</td><td class="num" style="color:#4ade80">${fmtBRL(v.receita)}</td><td><span class="pill pg">${pct}</span></td></tr>`;
-  }).join(''):'<tr><td colspan="5" class="empty">Sem lançamentos</td></tr>';
+    return`<tr><td>${nome}</td><td style="font-weight:500">${v.qtd}</td><td class="num" style="color:#4ade80">${fmtBRL(v.receita)}</td><td><span class="pill pg">${pct}</span></td></tr>`;
+  }).join(''):'<tr><td colspan="4" class="empty">Sem lançamentos</td></tr>';
   renderChartInv(mI);
   renderBreakdown();
 }
@@ -624,23 +633,20 @@ function calcular(){
 function renderBreakdown(){
   const vis=document.getElementById('vis-sel').value;
   const sec=document.getElementById('proj-breakdown-section');
-  const cards=document.getElementById('proj-breakdown-cards');
   if(!vis||!vis.startsWith('op:')){sec.style.display='none';return;}
   const opNome=vis.slice(3);
   const opProjs=projetos.filter(p=>p.op===opNome);
   if(!opProjs.length){sec.style.display='none';return;}
   sec.style.display='block';
   const di=document.getElementById('dt-i').value,df=document.getElementById('dt-f').value;
-  cards.innerHTML=opProjs.map(p=>{
-    let mL=leads.filter(l=>l.projId===p.id);
-    let mI=investData.filter(i=>i.projId===p.id);
-    let mF=ftds.filter(f=>f.projId===p.id);
+  document.getElementById('proj-breakdown-cards').innerHTML=opProjs.map(p=>{
+    let mL=leads.filter(l=>l.projId===p.id),mI=investData.filter(i=>i.projId===p.id),mF=ftds.filter(f=>f.projId===p.id);
     if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
     if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
     const m=calcMetrics(mL,mI,mF);
     return`<div class="proj-card">
-      <div class="proj-card-header">
-        <span class="proj-card-name">${p.nome}</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <span style="font-size:13px;font-weight:500;color:#ccc">${p.nome}</span>
         <span class="pill pb" style="font-size:10px">${p.op}</span>
       </div>
       <div class="proj-mini">
@@ -672,36 +678,20 @@ function renderChartInv(data){
   });
 }
 
-function renderLeads(){
-  const vis=document.getElementById('vis-sel').value;
-  let vis_leads=leads;
-  if(vis){
-    if(vis.startsWith('op:'))vis_leads=leads.filter(l=>l.opNome===vis.slice(3));
-    else vis_leads=leads.filter(l=>l.projId===parseInt(vis.slice(5)));
-  }
-  const shown=vis_leads.slice(0,100);
-  document.querySelector('#tbl-leads').innerHTML=shown.length?shown.map(l=>`<tr>
-    <td class="num">${l.tid}</td><td>${l.data}</td>
-    <td><span class="pill p0" style="font-size:10px">${l.opNome||'—'}</span> <span class="pill pb" style="font-size:10px">${l.projNome}</span></td>
-    <td>${l.ftdReal?'<span class="pill pg">Sim</span>':'<span class="pill p0">Não</span>'}</td>
-    <td style="font-size:12px;color:#444">${l.deposito||'—'}</td>
-  </tr>`).join('')+(vis_leads.length>100?`<tr><td colspan="5" style="text-align:center;font-size:12px;color:#444;padding:8px">... e mais ${vis_leads.length-100} leads</td></tr>`:'')
-  :'<tr><td colspan="5" class="empty">Nenhum lead importado</td></tr>';
-}
-
-function onVisChange(){calcular();renderLeads();}
+function onVisChange(){calcular();}
 
 // FTDs
 function calcPrev(){
   const casaId=parseInt(document.getElementById('ftd-casa').value);
   const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
+  const data=document.getElementById('ftd-data').value;
   const casa=casas.find(c=>c.id===casaId);
-  if(!casa||!qtd){document.getElementById('p-cpa').textContent='—';document.getElementById('p-rec').textContent='—';document.getElementById('p-usd').textContent='—';return;}
-  const unit=casa.cpa*dolar;
-  document.getElementById('p-cpa').textContent=fmtBRL(unit)+' ('+fmtUSD(casa.cpa)+')';
-  document.getElementById('p-rec').textContent=fmtBRL(unit*qtd);
-  document.getElementById('p-usd').textContent=fmtUSD(casa.cpa*qtd);
+  if(!casa||!qtd||!data){document.getElementById('p-cpa').textContent='—';document.getElementById('p-usd').textContent='—';return;}
+  const cpa=getCPAForDate(casa,data);
+  document.getElementById('p-cpa').textContent=fmtUSD(cpa)+(casa.usePeriodos?' (período)':' (padrão)');
+  document.getElementById('p-usd').textContent=fmtUSD(cpa*qtd);
 }
+
 function salvarFTD(){
   const projId=parseInt(document.getElementById('ftd-proj').value);
   const data=document.getElementById('ftd-data').value;
@@ -712,18 +702,23 @@ function salvarFTD(){
   const casa=casas.find(c=>c.id===casaId);
   const existing=ftds.find(f=>f.projId===projId&&f.data===data&&f.casaId===casaId);
   if(existing){if(!confirm(`Já existe lançamento para ${casa.nome} em ${data.split('-').reverse().join('/')}. Substituir?`))return;ftds=ftds.filter(f=>!(f.projId===projId&&f.data===data&&f.casaId===casaId));}
-  const cpaUnit=casa.cpa*dolar;
-  ftds.push({id:Date.now(),projId,projNome:proj?proj.nome:'—',opNome:proj?proj.op:'—',data,casaId,casaNome:casa?casa.nome:'—',casaGeo:casa?casa.geo:'',qtd,cpaUnit,cpa:casa.cpa,receita:cpaUnit*qtd});
+  const cpa=getCPAForDate(casa,data);
+  const receitaUSD=cpa*qtd;
+  const receitaBRL=receitaUSD*dolar;
+  ftds.push({id:Date.now(),projId,projNome:proj?proj.nome:'—',opNome:proj?proj.op:'—',data,casaId,casaNome:casa?casa.nome:'—',casaGeo:casa?casa.geo:'',qtd,cpa,receitaUSD,receita:receitaBRL});
   save();renderFTDs();calcular();
   document.getElementById('ftd-qtd').value='';
-  log(`FTD: ${proj?proj.nome:'?'} · ${casa?casa.nome:'?'} · ${qtd} · ${fmtBRL(cpaUnit*qtd)}`);
+  log(`FTD: ${proj?proj.nome:'?'} · ${casa?casa.nome:'?'} · ${qtd} · ${fmtUSD(receitaUSD)}`);
 }
+
 async function atualizarDia(){
   const data=document.getElementById('ftd-data').value;
   if(!data){alert('Selecione uma data primeiro');return;}
   await importarTudo();
 }
+
 function removerFTD(id){ftds=ftds.filter(f=>f.id!==id);save();renderFTDs();calcular();}
+
 function renderFTDs(){
   const pf=document.getElementById('hist-proj-fil').value;
   const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
@@ -734,22 +729,27 @@ function renderFTDs(){
   const dias=Object.keys(porDia).sort().reverse();
   el.innerHTML=dias.map(dia=>{
     const items=porDia[dia];
-    const totalRec=items.reduce((s,f)=>s+f.receita,0);
+    const totalUSD=items.reduce((s,f)=>s+(f.receitaUSD||0),0);
+    const totalBRL=items.reduce((s,f)=>s+f.receita,0);
     const totalFTD=items.reduce((s,f)=>s+f.qtd,0);
     return`<div class="day-row">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div><span style="font-size:13px;font-weight:500;color:#ccc">${dia.split('-').reverse().join('/')}</span>
           <span class="pill p0" style="margin-left:8px;font-size:10px">${totalFTD} FTDs</span></div>
-        <span style="font-size:13px;color:#4ade80;font-weight:500">${fmtBRL(totalRec)}</span>
+        <div style="text-align:right">
+          <div style="font-size:13px;color:#4ade80;font-weight:500">${fmtUSD(totalUSD)}</div>
+          <div style="font-size:11px;color:#555">${fmtBRL(totalBRL)}</div>
+        </div>
       </div>
       <table style="font-size:12px">
-        <thead><tr><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA</th><th>Receita</th><th></th></tr></thead>
+        <thead><tr><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA</th><th>Receita USD</th><th>Receita BRL</th><th></th></tr></thead>
         <tbody>${items.map(f=>`<tr>
           <td><span class="pill pb" style="font-size:10px">${f.projNome}</span></td>
           <td>${f.casaNome}${f.casaGeo?` <span style="color:#555;font-size:11px">(${f.casaGeo})</span>`:''}</td>
           <td style="font-weight:500">${f.qtd}</td>
           <td class="num">${fmtUSD(f.cpa)}</td>
-          <td class="num" style="color:#4ade80">${fmtBRL(f.receita)}</td>
+          <td class="num" style="color:#4ade80">${fmtUSD(f.receitaUSD||0)}</td>
+          <td class="num" style="color:#888">${fmtBRL(f.receita)}</td>
           <td><button class="btn bs bd" onclick="removerFTD(${f.id})">×</button></td>
         </tr>`).join('')}</tbody>
       </table>
@@ -757,34 +757,110 @@ function renderFTDs(){
   }).join('');
 }
 
+function exportFTDsExcel(){
+  if(!ftds.length){alert('Nenhum lançamento para exportar');return;}
+  const pf=document.getElementById('hist-proj-fil').value;
+  const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
+  const rows=[['Data','Operação','Projeto','Casa','Geo','FTDs','CPA (USD)','Receita USD','Receita BRL'],...dados.map(f=>[
+    f.data.split('-').reverse().join('/'),f.opNome||'',f.projNome,f.casaNome,f.casaGeo||'',
+    f.qtd,f.cpa,(f.receitaUSD||0).toFixed(2),f.receita.toFixed(2)
+  ])];
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:14},{wch:18},{wch:14},{wch:10},{wch:8},{wch:10},{wch:14},{wch:14}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'FTDs');
+  XLSX.writeFile(wb,'ftds-lancamentos.xlsx');
+  log('Excel FTDs exportado');
+}
+
 // CASAS
 function addCasa(){
   const nome=document.getElementById('c-nome').value.trim();
   if(!nome){alert('Informe o nome');return;}
-  casas.push({id:Date.now(),nome,cpa:parseFloat(document.getElementById('c-cpa').value)||0,geo:document.getElementById('c-geo').value.trim()});
+  casas.push({id:Date.now(),nome,cpa:parseFloat(document.getElementById('c-cpa').value)||0,geo:document.getElementById('c-geo').value.trim(),usePeriodos:false,periodos:[]});
   save();renderCasas();updateSelects();clearCasa();log('Casa: '+nome);
 }
 function clearCasa(){['c-nome','c-cpa','c-geo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';})}
 function removerCasa(id){const c=casas.find(x=>x.id===id);if(!confirm('Remover '+(c?c.nome:'?')+'?'))return;casas=casas.filter(x=>x.id!==id);save();renderCasas();updateSelects();}
+
+function abrirEditCasa(id){
+  const c=casas.find(x=>x.id===id);if(!c)return;
+  editCasaId=id;
+  document.getElementById('ec-nome').value=c.nome||'';
+  document.getElementById('ec-geo').value=c.geo||'';
+  document.getElementById('ec-cpa').value=c.cpa||'';
+  document.getElementById('ec-periodos-toggle').checked=!!c.usePeriodos;
+  renderPeriodosForm(c.periodos||[]);
+  document.getElementById('ec-periodos-section').style.display=c.usePeriodos?'block':'none';
+  document.getElementById('modal-casa').style.display='flex';
+}
+
+function togglePeriodos(){
+  const on=document.getElementById('ec-periodos-toggle').checked;
+  document.getElementById('ec-periodos-section').style.display=on?'block':'none';
+  if(on&&document.getElementById('ec-periodos-list').children.length===0)addPeriodo();
+}
+
+function renderPeriodosForm(periodos){
+  const el=document.getElementById('ec-periodos-list');
+  el.innerHTML='';
+  periodos.forEach((p,i)=>{
+    const div=document.createElement('div');div.className='periodo-row';
+    div.innerHTML=`
+      <div><label>CPA (USD)</label><input type="number" class="per-cpa" value="${p.cpa||''}" placeholder="Ex: 25"/></div>
+      <div><label>De (data)</label><input type="date" class="per-from" value="${p.from||''}"/></div>
+      <div><label>Até (vazio = sem fim)</label><input type="date" class="per-to" value="${p.to||''}"/></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn bs bd" onclick="this.closest('.periodo-row').remove()">×</button></div>`;
+    el.appendChild(div);
+  });
+}
+
+function addPeriodo(){
+  const el=document.getElementById('ec-periodos-list');
+  const div=document.createElement('div');div.className='periodo-row';
+  div.innerHTML=`
+    <div><label>CPA (USD)</label><input type="number" class="per-cpa" placeholder="Ex: 22"/></div>
+    <div><label>De (data)</label><input type="date" class="per-from"/></div>
+    <div><label>Até (vazio = sem fim)</label><input type="date" class="per-to"/></div>
+    <div style="display:flex;align-items:flex-end"><button class="btn bs bd" onclick="this.closest('.periodo-row').remove()">×</button></div>`;
+  el.appendChild(div);
+}
+
+function salvarEditCasa(){
+  if(!editCasaId)return;
+  const idx=casas.findIndex(c=>c.id===editCasaId);if(idx<0)return;
+  const usePeriodos=document.getElementById('ec-periodos-toggle').checked;
+  const periodos=[];
+  document.querySelectorAll('#ec-periodos-list .periodo-row').forEach(row=>{
+    const cpa=parseFloat(row.querySelector('.per-cpa').value)||0;
+    const from=row.querySelector('.per-from').value;
+    const to=row.querySelector('.per-to').value;
+    if(cpa&&from)periodos.push({cpa,from,to});
+  });
+  casas[idx]={...casas[idx],nome:document.getElementById('ec-nome').value.trim(),geo:document.getElementById('ec-geo').value.trim(),cpa:parseFloat(document.getElementById('ec-cpa').value)||0,usePeriodos,periodos};
+  save();renderCasas();updateSelects();closeModal('modal-casa');
+  log('Casa editada: '+casas[idx].nome);
+}
+
 function renderCasas(){
   document.getElementById('casas-count').textContent=casas.length;
   const el=document.getElementById('lista-casas');
   if(!casas.length){el.innerHTML='<div class="empty">Nenhuma casa</div>';return;}
   el.innerHTML=casas.map(c=>`<div style="background:#0d0d0d;border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #1e1e1e">
-    <div><div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}</div>
-    <div style="font-size:12px;color:#555;margin-top:2px">${fmtUSD(c.cpa)}/FTD = ${fmtBRL(c.cpa*dolar)}</div></div>
-    <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
+    <div>
+      <div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}</div>
+      <div style="font-size:12px;color:#555;margin-top:2px">
+        ${c.usePeriodos&&c.periodos&&c.periodos.length
+          ? c.periodos.map(p=>`${fmtUSD(p.cpa)} (${p.from}${p.to?' → '+p.to:' em diante'})`).join(' · ')
+          : fmtUSD(c.cpa)+'/FTD = '+fmtBRL(c.cpa*dolar)}
+        ${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn bs" onclick="abrirEditCasa(${c.id})">Editar</button>
+      <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
+    </div>
   </div>`).join('');
-}
-function exportCasasExcel(){
-  if(!casas.length){alert('Nenhuma casa');return;}
-  const data=[['Nome','CPA (USD)','CPA (BRL)','Geo'],...casas.map(c=>[c.nome,c.cpa,(c.cpa*dolar).toFixed(2),c.geo||''])];
-  const ws=XLSX.utils.aoa_to_sheet(data);
-  ws['!cols']=[{wch:20},{wch:12},{wch:14},{wch:12}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Casas');
-  XLSX.writeFile(wb,'casas-apostas.xlsx');
-  log('Excel exportado');
 }
 
 // PROJETOS
@@ -793,14 +869,7 @@ function addProjeto(){
   const op=document.getElementById('op-nome').value.trim();
   if(!nome||!op){alert('Preencha operação e projeto');return;}
   const leadsIdRaw=document.getElementById('p-leads-id').value.trim();
-  const contas=[];
-  document.querySelectorAll('#contas-anuncio-form .acc-block').forEach(block=>{
-    const idRaw=block.querySelector('.inv-id').value.trim();
-    const ab=block.querySelector('.inv-aba').value.trim();
-    const fi=block.querySelector('.inv-filtro').value.trim();
-    if(idRaw&&ab)contas.push({id:extractId(idRaw),aba:ab,filtro:fi});
-  });
-  projetos.push({id:Date.now(),nome,op,leadsId:leadsIdRaw?extractId(leadsIdRaw):'',leadsAba:document.getElementById('p-leads-aba').value.trim(),contas});
+  projetos.push({id:Date.now(),nome,op,leadsId:leadsIdRaw?extractId(leadsIdRaw):'',leadsAba:document.getElementById('p-leads-aba').value.trim(),contas:getContasFromForm('contas-anuncio-form')});
   save();renderProjetos();updateSelects();clearProjeto();log('Projeto: '+nome);
 }
 function clearProjeto(){
@@ -809,66 +878,49 @@ function clearProjeto(){
   document.getElementById('contas-anuncio-form').innerHTML=`<div class="acc-block">
     <div class="fg" style="margin-bottom:6px">
       <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
-      <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB"/></div>
-      <div><label>Filtro campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+      <div><label>Aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB"/></div>
+      <div><label>Filtro (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
+      <div><label>Moeda</label><select class="inv-moeda"><option value="BRL">Real (BRL)</option><option value="USD">Dólar (USD)</option></select></div>
     </div>
-    <div style="display:flex;gap:8px"><button class="btn bs" onclick="testarContaAnuncio(this)">Testar</button>
+    <div style="display:flex;gap:8px"><button class="btn bs" onclick="testarContaBlock(this)">Testar</button>
     <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span></div>
   </div>`;
 }
-function removerProjeto(id){
-  const p=projetos.find(x=>x.id===id);
-  if(!confirm('Remover '+(p?p.nome:'?')+'?'))return;
-  projetos=projetos.filter(x=>x.id!==id);save();renderProjetos();updateSelects();
-}
+function removerProjeto(id){const p=projetos.find(x=>x.id===id);if(!confirm('Remover '+(p?p.nome:'?')+'?'))return;projetos=projetos.filter(x=>x.id!==id);save();renderProjetos();updateSelects();}
 
-// EDITAR PROJETO
-function editarProjeto(id){
+function abrirEditProj(id){
   const p=projetos.find(x=>x.id===id);if(!p)return;
-  editingId=id;
-  document.getElementById('edit-op-nome').value=p.op||'';
-  document.getElementById('edit-p-nome').value=p.nome||'';
-  document.getElementById('edit-leads-id').value=p.leadsId||'';
-  document.getElementById('edit-leads-aba').value=p.leadsAba||'';
-  document.getElementById('edit-leads-status').style.display='none';
-  const cf=document.getElementById('edit-contas-form');
-  cf.innerHTML='';
+  editProjId=id;
+  document.getElementById('ep-op').value=p.op||'';
+  document.getElementById('ep-nome').value=p.nome||'';
+  document.getElementById('ep-leads-id').value=p.leadsId||'';
+  document.getElementById('ep-leads-aba').value=p.leadsAba||'';
+  document.getElementById('ep-leads-status').style.display='none';
+  const cf=document.getElementById('ep-contas-form');cf.innerHTML='';
   (p.contas||[]).forEach(conta=>{
     const div=document.createElement('div');div.className='acc-block';
     div.innerHTML=`<div class="fg" style="margin-bottom:6px">
       <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" value="${conta.id||''}"/></div>
       <div><label>Aba</label><input type="text" class="inv-aba" value="${conta.aba||''}"/></div>
       <div><label>Filtro</label><input type="text" class="inv-filtro" value="${conta.filtro||''}"/></div>
+      <div><label>Moeda</label><select class="inv-moeda"><option value="BRL" ${(conta.moeda||'BRL')==='BRL'?'selected':''}>Real (BRL)</option><option value="USD" ${conta.moeda==='USD'?'selected':''}>Dólar (USD)</option></select></div>
     </div>
     <div style="display:flex;gap:8px">
-      <button class="btn bs" onclick="testarContaAnuncio(this)">Testar</button>
+      <button class="btn bs" onclick="testarContaBlock(this)">Testar</button>
       <button class="btn bs bd" onclick="this.closest('.acc-block').remove()">Remover</button>
       <span class="conta-status" style="font-size:12px;color:#555;align-self:center"></span>
     </div>`;
     cf.appendChild(div);
   });
-  if(!p.contas||!p.contas.length)addEditConta();
-  document.getElementById('edit-modal').style.display='flex';
+  if(!p.contas||!p.contas.length)addContaBlock('ep-contas-form');
+  document.getElementById('modal-proj').style.display='flex';
 }
-function closeEdit(){document.getElementById('edit-modal').style.display='none';editingId=null;}
-function salvarEdit(){
-  if(!editingId)return;
-  const idx=projetos.findIndex(p=>p.id===editingId);if(idx<0)return;
-  const contas=[];
-  document.querySelectorAll('#edit-contas-form .acc-block').forEach(block=>{
-    const idRaw=block.querySelector('.inv-id').value.trim();
-    const ab=block.querySelector('.inv-aba').value.trim();
-    const fi=block.querySelector('.inv-filtro').value.trim();
-    if(idRaw&&ab)contas.push({id:extractId(idRaw),aba:ab,filtro:fi});
-  });
-  projetos[idx]={...projetos[idx],
-    op:document.getElementById('edit-op-nome').value.trim(),
-    nome:document.getElementById('edit-p-nome').value.trim(),
-    leadsId:extractId(document.getElementById('edit-leads-id').value.trim()),
-    leadsAba:document.getElementById('edit-leads-aba').value.trim(),
-    contas
-  };
-  save();renderProjetos();updateSelects();closeEdit();
+
+function salvarEditProj(){
+  if(!editProjId)return;
+  const idx=projetos.findIndex(p=>p.id===editProjId);if(idx<0)return;
+  projetos[idx]={...projetos[idx],op:document.getElementById('ep-op').value.trim(),nome:document.getElementById('ep-nome').value.trim(),leadsId:extractId(document.getElementById('ep-leads-id').value.trim()),leadsAba:document.getElementById('ep-leads-aba').value.trim(),contas:getContasFromForm('ep-contas-form')};
+  save();renderProjetos();updateSelects();closeModal('modal-proj');
   log('Projeto editado: '+projetos[idx].nome);
 }
 
@@ -876,12 +928,11 @@ function renderProjetos(){
   document.getElementById('proj-count').textContent=projetos.length;
   const el=document.getElementById('lista-projetos');
   if(!projetos.length){el.innerHTML='<div class="empty">Nenhum projeto</div>';return;}
-  // group by operação
   const porOp={};
   projetos.forEach(p=>{if(!porOp[p.op])porOp[p.op]=[];porOp[p.op].push(p);});
   el.innerHTML=Object.entries(porOp).map(([op,ps])=>`
     <div style="margin-bottom:1rem">
-      <div style="font-size:12px;font-weight:500;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Operação: ${op}</div>
+      <div style="font-size:11px;font-weight:500;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Operação: ${op}</div>
       ${ps.map(p=>{
         const lc=leads.filter(l=>l.projId===p.id).length;
         return`<div class="sbox">
@@ -890,13 +941,13 @@ function renderProjetos(){
             ${lc?`<div style="font-size:11px;color:#444;margin-top:1px">${lc} leads importados</div>`:''}
             </div>
             <div style="display:flex;gap:6px">
-              <button class="btn bs" onclick="editarProjeto(${p.id})">Editar</button>
+              <button class="btn bs" onclick="abrirEditProj(${p.id})">Editar</button>
               <button class="btn bs bd" onclick="removerProjeto(${p.id})">Remover</button>
             </div>
           </div>
           <div style="font-size:11px;color:#444;display:grid;gap:3px">
             <div>Leads: ${p.leadsId&&p.leadsAba?`<span style="color:#4ade80">Aba "${p.leadsAba}"</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
-            <div>Contas ads: ${p.contas&&p.contas.length?`<span style="color:#4ade80">${p.contas.length} conta(s)</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
+            <div>Contas ads: ${p.contas&&p.contas.length?`<span style="color:#4ade80">${p.contas.length} conta(s) — ${p.contas.map(c=>'"'+c.aba+'"'+(c.moeda==='USD'?' [USD]':'')).join(', ')}</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
           </div>
         </div>`;
       }).join('')}
@@ -904,19 +955,13 @@ function renderProjetos(){
 }
 
 function updateSelects(){
-  // vis-sel: operações + projetos
   const vs=document.getElementById('vis-sel'),vv=vs.value;
   const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
-  vs.innerHTML='<option value="">Todos</option>'+
-    ops.map(op=>`<optgroup label="Operação: ${op}"><option value="op:${op}">Operação: ${op} (consolidado)</option>${projetos.filter(p=>p.op===op).map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('')}</optgroup>`).join('');
+  vs.innerHTML='<option value="">Todos</option>'+ops.map(op=>`<optgroup label="Operação: ${op}"><option value="op:${op}">Operação: ${op} (consolidado)</option>${projetos.filter(p=>p.op===op).map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('')}</optgroup>`).join('');
   if(vv)vs.value=vv;
-
-  // ftd-proj e hist-proj
   document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome} (${p.op})</option>`).join('');
   document.getElementById('hist-proj-fil').innerHTML='<option value="">Todos</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
-
-  // ftd-casa: inclui geo entre parênteses
-  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''} — $ ${c.cpa}</option>`).join('');
+  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
 }
 
 function saveDolar(){dolar=parseFloat(document.getElementById('cfg-dolar').value)||5.27;localStorage.setItem('ig_dolar',dolar);renderCasas();log('Cotação: R$ '+dolar.toFixed(2));}
@@ -937,7 +982,6 @@ function importJSON(input){
   r.readAsText(input.files[0]);
 }
 
-// INIT
 const td=new Date().toISOString().split('T')[0];
 document.getElementById('dt-i').value=td;
 document.getElementById('dt-f').value=td;
