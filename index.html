@@ -965,26 +965,27 @@ function getFilteredData(visOverride){
   if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
   if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
   // Depósito IA: conta col C dentro do período selecionado
-  // Depósito IA: col C dentro do período, mesmo filtro de vis que os leads
-  let mDeps=leads.filter(l=>l.ftdReal);
+  // Depósito IA: usa mL (já filtrado por vis+período de entrada) como base
+  // mas filtra pela data da col C, não pela col B
+  // pega todos os leads do mesmo vis sem filtro de data de entrada
+  let mDeps=leads;
   if(vis){
     if(vis.startsWith('op:')){
       const o=vis.slice(3);
-      mDeps=mDeps.filter(l=>(l.opNome||'').toLowerCase().trim()===(o||'').toLowerCase().trim());
+      mDeps=mDeps.filter(l=>l.projId&&projetos.find(p=>p.id===l.projId&&p.op===o));
     } else {
       const id=parseInt(vis.replace('proj:',''));
       mDeps=mDeps.filter(l=>l.projId===id);
     }
   }
-  if(di||df){
-    mDeps=mDeps.filter(l=>{
-      const dd=(l.dataDeposito||'').trim();
-      if(!dd)return false;
-      if(di&&dd<di.trim())return false;
-      if(df&&dd>df.trim())return false;
-      return true;
-    });
-  }
+  // filtra pela data do DEPÓSITO (col C) dentro do período
+  mDeps=mDeps.filter(l=>{
+    const dd=(l.dataDeposito||'').trim();
+    if(!dd)return false;
+    if(di&&dd<di)return false;
+    if(df&&dd>df)return false;
+    return true;
+  });
   return{mL,mI,mF,tDeps:mDeps.length};
 }
 
