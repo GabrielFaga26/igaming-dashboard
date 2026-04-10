@@ -168,7 +168,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
 <!-- VISÃO GERAL -->
 <div id="sec-overview" class="section active">
   <div style="display:flex;gap:10px;margin-bottom:1.25rem;align-items:flex-end;flex-wrap:wrap">
-    <div id="vis-sel-wrap"><label>Visualizar</label>
+    <div id="vis-sel-wrap"><label id="vis-sel-label">Visualizar</label>
       <select id="vis-sel" style="min-width:220px" onchange="onVisChange()">
         <option value="">Todos</option>
       </select>
@@ -923,7 +923,11 @@ async function importarTudo(){
 // CALCULAR
 function getVisValue(){
   const vs=document.getElementById('vis-sel');
-  if(currentUserData?.role==='gestor')return'op:'+currentUserData.operacao;
+  // gestor: usa o valor selecionado (já filtrado para sua operação)
+  // se nada selecionado, default para sua operação
+  if(currentUserData?.role==='gestor'){
+    return vs.value||('op:'+currentUserData.operacao);
+  }
   return vs.value;
 }
 
@@ -1220,9 +1224,10 @@ function onVisChange(){calcular();}
 
 function getBrasiliaDate(offsetDays=0){
   const now=new Date();
-  // Brasilia = UTC-3
-  const brasilia=new Date(now.getTime()-(3*60*60*1000)+(offsetDays*24*60*60*1000));
-  return brasilia.toISOString().split('T')[0];
+  if(offsetDays!==0)now.setDate(now.getDate()+offsetDays);
+  // usa Intl para pegar data correta em Brasilia independente do fuso do navegador
+  const parts=new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Sao_Paulo'}).format(now);
+  return parts; // retorna yyyy-mm-dd
 }
 function setHoje(){
   const d=getBrasiliaDate(0);
