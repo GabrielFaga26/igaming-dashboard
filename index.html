@@ -32,7 +32,7 @@ body.light{
 .dash{padding:1.5rem;max-width:1200px;margin:0 auto}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;padding-bottom:1rem;border-bottom:1px solid var(--border)}
 .tabs{display:flex;gap:4px;background:var(--bg3);border-radius:8px;padding:4px;margin-bottom:1.5rem;border:1px solid var(--border);flex-wrap:wrap}
-.tab{padding:7px 18px;border-radius:6px;border:none;background:transparent;font-size:13px;cursor:pointer;color:var(--text5);font-family:inherit;transition:all .15s}
+.tab{padding:7px 18px;border-radius:6px;border:none;background:transparent;font-size:13px;cursor:pointer;color:var(--text3);font-family:inherit;transition:all .15s}
 .tab:hover{color:#aaa}
 .tab.active{background:var(--bg2);color:var(--text);font-weight:500;border:1px solid var(--border3)}
 .section{display:none}.section.active{display:block}
@@ -44,7 +44,7 @@ body.light{
 .hero-m.green{border-color:#14532d;background:#0a1f11}
 .hero-m.roi-pos{border-color:#14532d;background:#0a1f11}
 .hero-m.roi-neg{border-color:#450a0a;background:#1a0808}
-.hero-label{font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.hero-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
 .hero-val{font-size:22px;font-weight:600;color:#fff;line-height:1}
 .hero-m.accent .hero-val{color:#60a5fa}
 .hero-m.green .hero-val{color:#4ade80}
@@ -52,7 +52,7 @@ body.light{
 .hero-m.roi-neg .hero-val{color:#f87171}
 .sec-mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:1.25rem}
 .sm{background:var(--bg3);border-radius:8px;padding:.75rem;border:1px solid var(--border)}
-.sm-l{font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.sm-l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
 .sm-v{font-size:15px;font-weight:500;color:#bbb}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
 .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
@@ -86,13 +86,13 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 .bs{padding:5px 12px;font-size:12px}
 .bd{background:#1a0808;color:#f87171;border-color:transparent}.bd:hover{background:#2a0a0a}
 .bgreen{background:#0a1f11;color:#4ade80;border-color:#14532d}.bgreen:hover{background:#0f2a17}
-.empty{text-align:center;color:var(--text5);font-size:13px;padding:1.5rem}
+.empty{text-align:center;color:var(--text4);font-size:13px;padding:1.5rem}
 .sbox{background:var(--bg3);border-radius:8px;padding:1rem;border:1px solid var(--border);margin-bottom:.75rem}
 .log-e{font-size:12px;padding:5px 0;border-bottom:1px solid #141414;color:var(--text5);display:flex;justify-content:space-between;gap:8px}
 .num{font-family:'SF Mono',Monaco,monospace;font-size:12px}
 .spin{display:inline-block;width:11px;height:11px;border:2px solid #222;border-top-color:#185FA5;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.hint{font-size:11px;color:var(--text5);margin-top:3px}
+.hint{font-size:11px;color:var(--text3);margin-top:3px}
 .sheet-block{border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem;background:#141414}
 .sheet-block-title{font-size:13px;font-weight:500;color:var(--text3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .status-ok{background:#0a1f11;color:#4ade80;border-radius:8px;padding:6px 10px;font-size:12px;margin-top:6px}
@@ -153,7 +153,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 
 <div class="topbar">
   <div>
-    <div style="font-size:20px;font-weight:600;color:#fff">Painel iGaming</div>
+    <div style="font-size:20px;font-weight:600;color:var(--text)">Painel iGaming</div>
     <div style="font-size:12px;color:var(--text5);margin-top:2px" id="last-up">—</div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -207,7 +207,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div class="hero-m accent"><div class="hero-label">Investimento</div><div class="hero-val" id="h-inv">—</div></div>
     <div class="hero-m"><div class="hero-label">Leads</div><div class="hero-val" id="h-leads">—</div></div>
     <div class="hero-m"><div class="hero-label">FTDs confirmados</div><div class="hero-val" id="h-ftds">—</div></div>
-    <div class="hero-m green"><div class="hero-label">Receita</div><div class="hero-val" id="h-rec">—</div></div>
+    <div class="hero-m green"><div class="hero-label">Receita Total</div><div class="hero-val" id="h-rec">—</div></div>
     <div class="hero-m green"><div class="hero-label">Lucro</div><div class="hero-val" id="h-lucro">—</div></div>
     <div class="hero-m" id="h-roi-card"><div class="hero-label">ROI</div><div class="hero-val" id="h-roi">—</div></div>
   </div>
@@ -217,6 +217,8 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div class="sm"><div class="sm-l">Conv. lead→FTD</div><div class="sm-v" id="m-conv">—</div></div>
     <div class="sm"><div class="sm-l">Custo por FTD</div><div class="sm-v" id="m-cftd">—</div></div>
     <div class="sm"><div class="sm-l">CPL</div><div class="sm-v" id="m-cpl">—</div></div>
+    <div class="sm"><div class="sm-l">Receita CPA</div><div class="sm-v" id="m-rec-cpa">—</div></div>
+    <div class="sm"><div class="sm-l">Receita Infoproduto</div><div class="sm-v" id="m-rec-info">—</div></div>
   </div>
 
   <div class="row2">
@@ -265,8 +267,8 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div style="background:var(--bg4);border-radius:8px;padding:1rem;margin-bottom:1rem;border:1px solid var(--border)">
       <div style="font-size:12px;color:var(--text5);margin-bottom:8px">Prévia</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">
-        <div><div style="font-size:11px;color:#555">CPA vigente na data</div><div style="font-weight:500;font-size:15px;color:#60a5fa" id="p-cpa">—</div></div>
-        <div><div style="font-size:11px;color:#555">Total em USD</div><div style="font-weight:500;font-size:15px;color:#4ade80" id="p-usd">—</div></div>
+        <div><div style="font-size:11px;color:var(--text4)">CPA vigente na data</div><div style="font-weight:500;font-size:15px;color:#60a5fa" id="p-cpa">—</div></div>
+        <div><div style="font-size:11px;color:var(--text4)">Total em USD</div><div style="font-weight:500;font-size:15px;color:#4ade80" id="p-usd">—</div></div>
       </div>
     </div>
     <button class="btn bp" id="btn-salvar-ftd" onclick="salvarFTD()">Salvar lançamento</button>
@@ -361,6 +363,11 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
           </div>
         </div>
       </div>
+      <div style="margin-bottom:1rem">
+        <label>IDs de produto Hotmart vinculados</label>
+        <textarea id="p-hotmart-ids" rows="3" placeholder="Um ID por linha&#10;Ex: tzx4uh8d&#10;96a19er2" style="font-family:monospace;font-size:12px"></textarea>
+        <div class="hint">Adicione os IDs da col L da planilha Hotmart que pertencem a esta operação</div>
+      </div>
       <div style="display:flex;gap:8px">
           <button class="btn bp" onclick="addProjetoAndClose()">Salvar projeto</button>
           <button class="btn" onclick="toggleForm('form-novo-proj',document.getElementById('btn-novo-proj'));clearProjeto()">Cancelar</button>
@@ -401,6 +408,26 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div class="card">
       <div class="ch"><span class="ct">Gestores cadastrados</span><span id="gestores-count" class="pill pb">0</span></div>
       <div id="lista-gestores"><div class="empty">Nenhum gestor cadastrado</div></div>
+    </div>
+  </div>
+
+  <div class="cfg-section">
+    <div class="cfg-section-title">Hotmart — Planilha de Vendas</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--text4);margin-bottom:1rem">Col F = Valor USD · Col J = Data da venda · Col L = ID do Produto</div>
+      <div style="margin-bottom:1rem">
+        <label>ID ou URL da planilha</label>
+        <input type="text" id="hotmart-id" placeholder="Cole a URL ou ID da planilha"/>
+      </div>
+      <div style="margin-bottom:1rem">
+        <label>Nome da aba</label>
+        <input type="text" id="hotmart-aba" placeholder="Ex: Dados Geral" value="Dados Geral"/>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn bp" onclick="salvarConfigHotmart()">Salvar</button>
+        <button class="btn bs" onclick="testarSheet('hotmart-id','hotmart-aba','hotmart-test-status')">Testar conexão</button>
+      </div>
+      <div id="hotmart-test-status" style="display:none;margin-top:8px"></div>
     </div>
   </div>
 
@@ -512,6 +539,11 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
       </div>
       <div id="ep-contas-form"></div>
     </div>
+    <div style="margin-bottom:1rem">
+      <label>IDs de produto Hotmart vinculados</label>
+      <textarea id="ep-hotmart-ids" rows="3" style="font-family:monospace;font-size:12px" placeholder="Um ID por linha"></textarea>
+      <div class="hint">Um ID por linha — col L da planilha Hotmart</div>
+    </div>
     <div style="display:flex;gap:8px;margin-top:1rem">
       <button class="btn bp" onclick="salvarEditProj()">Salvar</button>
       <button class="btn" onclick="closeModal('modal-proj')">Cancelar</button>
@@ -526,7 +558,7 @@ const SUPA_KEY='sb_publishable_2j8U41YIhunRh1-TtCzJdA_7fDmAZ7z';
 const {createClient}=supabase;
 const sb=createClient(SUPA_URL,SUPA_KEY);
 
-let casas=[],projetos=[],ftds=[],leads=[],investData=[],logs=[];
+let casas=[],projetos=[],ftds=[],leads=[],investData=[],hotmartData=[],logs=[];
 let dolar=5.27,invChart=null,casaChart=null,casaView='lista',currency='BRL';
 let editCasaId=null,editProjId=null;
 let currentUser=null,currentUserData=null;
@@ -622,9 +654,20 @@ async function fazerLogout(){
 // CONFIG
 async function carregarConfig(){
   const {data}=await sb.from('config').select('*');
-  if(data)data.forEach(r=>{if(r.chave==='dolar'){dolar=parseFloat(r.valor)||5.27;document.getElementById('cfg-dolar').value=dolar;const sel=document.getElementById('dolar-sel');for(let o of sel.options)if(parseFloat(o.value)===dolar)o.selected=true;}});
+  if(data)data.forEach(r=>{
+    if(r.chave==='dolar'){dolar=parseFloat(r.valor)||5.27;document.getElementById('cfg-dolar').value=dolar;const sel=document.getElementById('dolar-sel');for(let o of sel.options)if(parseFloat(o.value)===dolar)o.selected=true;}
+    if(r.chave==='hotmart-id'){const el=document.getElementById('hotmart-id');if(el)el.value=r.valor;}
+    if(r.chave==='hotmart-aba'){const el=document.getElementById('hotmart-aba');if(el)el.value=r.valor;}
+  });
 }
 
+async function salvarConfigHotmart(){
+  const id=document.getElementById('hotmart-id').value.trim();
+  const aba=document.getElementById('hotmart-aba').value.trim();
+  await sb.from('config').upsert({chave:'hotmart-id',valor:id?extractId(id):''});
+  await sb.from('config').upsert({chave:'hotmart-aba',valor:aba||'Dados Geral'});
+  log('Config Hotmart salva');alert('Configuração Hotmart salva!');
+}
 async function salvarDolarDB(val){
   dolar=val||5.27;
   await sb.from('config').upsert({chave:'dolar',valor:String(dolar)});
@@ -752,8 +795,8 @@ function renderCasas(){
   function casaCard(c){
     return`<div style="background:var(--bg4);border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid var(--border);opacity:${c.ativo===false?0.45:1}">
       <div>
-        <div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}${c.ativo===false?' <span class="pill p0" style="font-size:10px">oculta</span>':''}</div>
-        <div style="font-size:12px;color:var(--text5);margin-top:2px">${c.usePeriodos&&c.periodos&&c.periodos.length?c.periodos.map(p=>`$${p.cpa} (${p.from}${p.to?' → '+p.to:''})`).join(' · '):'$'+c.cpa+'/FTD = R$'+(c.cpa*dolar).toFixed(2)}${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}</div>
+        <div style="font-size:14px;font-weight:500;color:var(--text)">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}${c.ativo===false?' <span class="pill p0" style="font-size:10px">oculta</span>':''}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${c.usePeriodos&&c.periodos&&c.periodos.length?c.periodos.map(p=>`$${p.cpa} (${p.from}${p.to?' → '+p.to:''})`).join(' · '):'$'+c.cpa+'/FTD = R$'+(c.cpa*dolar).toFixed(2)}${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}</div>
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn bs" onclick="toggleCasaAtiva(${c.id})" title="${c.ativo===false?'Ativar':'Ocultar'}" style="padding:5px 10px">&#9728;</button>
@@ -790,7 +833,7 @@ async function carregarProjetos(){
     else if(gestorOps.length>1)query=query.in('operacao',gestorOps);
   }
   const {data}=await query;
-  if(data)projetos=data.map(p=>({...p,op:p.operacao,leadsId:p.leads_id,leadsAba:p.leads_aba,contas:p.contas||[]}));
+  if(data)projetos=data.map(p=>({...p,op:p.operacao,leadsId:p.leads_id,leadsAba:p.leads_aba,contas:p.contas||[],hotmartIds:p.hotmart_ids||[]}));
   renderProjetos();
 }
 
@@ -800,7 +843,9 @@ async function addProjeto(){
   if(!nome||!op){alert('Preencha operação e projeto');return;}
   const leadsIdRaw=document.getElementById('p-leads-id').value.trim();
   const contas=getContasFromForm('contas-anuncio-form');
-  const {data,error}=await sb.from('projetos').insert({nome,operacao:op,leads_id:leadsIdRaw?extractId(leadsIdRaw):'',leads_aba:document.getElementById('p-leads-aba').value.trim(),contas}).select().single();
+  const idsRaw=document.getElementById('p-hotmart-ids')?.value||'';
+  const hotmartIds=idsRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+  const {data,error}=await sb.from('projetos').insert({nome,operacao:op,leads_id:leadsIdRaw?extractId(leadsIdRaw):'',leads_aba:document.getElementById('p-leads-aba').value.trim(),contas,hotmart_ids:hotmartIds}).select().single();
   if(error){alert('Erro: '+error.message);return;}
   projetos.push({...data,op:data.operacao,leadsId:data.leads_id,leadsAba:data.leads_aba,contas:data.contas||[]});
   renderProjetos();updateSelects();clearProjeto();log('Projeto: '+nome);
@@ -835,6 +880,8 @@ function abrirEditProj(id){
   document.getElementById('ep-leads-id').value=p.leadsId||'';
   document.getElementById('ep-leads-aba').value=p.leadsAba||'';
   document.getElementById('ep-leads-status').style.display='none';
+  const epHids=document.getElementById('ep-hotmart-ids');
+  if(epHids)epHids.value=(p.hotmart_ids||[]).join('\n');
   const cf=document.getElementById('ep-contas-form');cf.innerHTML='';
   (p.contas||[]).forEach(conta=>{
     const div=document.createElement('div');div.className='acc-block';
@@ -858,7 +905,9 @@ function abrirEditProj(id){
 async function salvarEditProj(){
   if(!editProjId)return;
   const contas=getContasFromForm('ep-contas-form');
-  const updates={operacao:document.getElementById('ep-op').value.trim(),nome:document.getElementById('ep-nome').value.trim(),leads_id:extractId(document.getElementById('ep-leads-id').value.trim()),leads_aba:document.getElementById('ep-leads-aba').value.trim(),contas};
+  const epIdsRaw=document.getElementById('ep-hotmart-ids')?.value||'';
+  const epHotmartIds=epIdsRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+  const updates={operacao:document.getElementById('ep-op').value.trim(),nome:document.getElementById('ep-nome').value.trim(),leads_id:extractId(document.getElementById('ep-leads-id').value.trim()),leads_aba:document.getElementById('ep-leads-aba').value.trim(),contas,hotmart_ids:epHotmartIds};
   await sb.from('projetos').update(updates).eq('id',editProjId);
   const idx=projetos.findIndex(p=>p.id===editProjId);
   if(idx>=0)projetos[idx]={...projetos[idx],...updates,op:updates.operacao,leadsId:updates.leads_id,leadsAba:updates.leads_aba};
@@ -881,7 +930,7 @@ function renderProjetos(){
       <div style="font-size:11px;font-weight:500;color:var(--text5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Operação: ${op}</div>
       ${ps.map(p=>`<div class="sbox">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
-          <div><div style="font-size:13px;font-weight:500;color:#e8e8e8">${p.nome}</div></div>
+          <div><div style="font-size:13px;font-weight:500;color:var(--text)">${p.nome}</div></div>
           <div style="display:flex;gap:6px">
             <button class="btn bs" onclick="abrirEditProj(${p.id})">Editar</button>
             ${podeExcluirProjeto()?`<button class="btn bs bd" onclick="removerProjeto(${p.id})">Remover</button>`:''}
@@ -950,8 +999,8 @@ async function carregarGestores(){
   if(!data||!data.length){el.innerHTML='<div class="empty">Nenhum gestor</div>';return;}
   el.innerHTML=data.map(g=>`<div class="sbox" style="display:flex;align-items:center;justify-content:space-between">
     <div>
-      <div style="font-size:13px;font-weight:500;color:#e8e8e8">${g.nome}</div>
-      <div style="font-size:12px;color:#555">@${g.email.replace('@igaming.app','')} · Operação: <span style="color:#60a5fa">${g.operacao||'—'}</span> · <span class="pill ${g.nivel_acesso==='limitado'?'pa':'pg'}" style="font-size:10px">${g.nivel_acesso==='limitado'?'Limitado':'Total'}</span></div>
+      <div style="font-size:13px;font-weight:500;color:var(--text)">${g.nome}</div>
+      <div style="font-size:12px;color:var(--text3)">@${g.email.replace('@igaming.app','')} · Operação: <span style="color:#60a5fa">${g.operacao||'—'}</span> · <span class="pill ${g.nivel_acesso==='limitado'?'pa':'pg'}" style="font-size:10px">${g.nivel_acesso==='limitado'?'Limitado':'Total'}</span></div>
     </div>
     <div style="display:flex;gap:6px">
       <button class="btn bs" onclick="abrirEditGestor('${g.id}','${g.nome}','${g.email.replace('@igaming.app','')}','${g.operacao||''}','${g.nivel_acesso||'total'}')">Editar</button>
@@ -1084,6 +1133,36 @@ async function importarTudo(){
       }catch(e){log('Erro invest: '+e.message);}
     }
   }
+  // Importar Hotmart
+  hotmartData=[];
+  try{
+    const hIdRaw=(await sb.from('config').select('valor').eq('chave','hotmart-id').single()).data?.valor||'';
+    const hAba=(await sb.from('config').select('valor').eq('chave','hotmart-aba').single()).data?.valor||'Dados Geral';
+    if(hIdRaw){
+      const hId=extractId(hIdRaw);
+      const resp=await fetch(buildURL(hId,hAba));
+      if(resp.ok){
+        const rows=parseCSV(await resp.text());
+        // build lookup: projId -> Set of hotmart IDs
+        const projHids={};
+        projetos.forEach(p=>{if(p.hotmartIds?.length)projHids[p.id]=new Set(p.hotmartIds);});
+        rows.forEach(r=>{
+          const prodId=(r[11]||'').trim(); // col L (index 11)
+          const valorUSD=parseFloat((r[5]||'').replace(/[^0-9.,]/g,'').replace(',','.'))||0; // col F
+          const dataStr=(r[9]||'').trim(); // col J
+          if(!prodId||!valorUSD)return;
+          // find which project this product belongs to
+          for(const p of projetos){
+            if(p.hotmartIds?.includes(prodId)){
+              hotmartData.push({prodId,valorUSD,valorBRL:valorUSD*dolar,data:dataStr,dataYMD:toYMD(dataStr),projId:p.id,projNome:p.nome,opNome:p.op});
+              break;
+            }
+          }
+        });
+        log(`Hotmart: ${rows.length} linhas, ${hotmartData.length} vendas vinculadas`);
+      }
+    }
+  }catch(e){log('Erro Hotmart: '+e.message);}
   document.getElementById('last-up').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
   st.textContent=`${lT} leads · R$ ${iT.toFixed(2)}`;
   calcular();
@@ -1110,16 +1189,19 @@ function getFilteredData(visOverride){
   const df=document.getElementById('dt-f').value;
   const vis=visOverride!==undefined?visOverride:getVisValue();
   let mL=leads,mI=investData,mF=ftds;
+  let mH=hotmartData;
   if(vis){
     if(vis.startsWith('all-ops:')){
       const ops=vis.slice(8).split(',');
-      mL=mL.filter(l=>ops.includes(l.opNome));mI=mI.filter(i=>ops.includes(i.opNome));mF=mF.filter(f=>ops.includes(f.opNome));
+      mL=mL.filter(l=>ops.includes(l.opNome));mI=mI.filter(i=>ops.includes(i.opNome));mF=mF.filter(f=>ops.includes(f.opNome));mH=mH.filter(h=>ops.includes(h.opNome));
     } else if(vis.startsWith('op:')){
-      const o=vis.slice(3);mL=mL.filter(l=>l.opNome===o);mI=mI.filter(i=>i.opNome===o);mF=mF.filter(f=>f.opNome===o);
+      const o=vis.slice(3);mL=mL.filter(l=>l.opNome===o);mI=mI.filter(i=>i.opNome===o);mF=mF.filter(f=>f.opNome===o);mH=mH.filter(h=>h.opNome===o);
     } else {
-      const id=parseInt(vis.replace('proj:',''));mL=mL.filter(l=>l.projId===id);mI=mI.filter(i=>i.projId===id);mF=mF.filter(f=>f.projId===id);
+      const id=parseInt(vis.replace('proj:',''));mL=mL.filter(l=>l.projId===id);mI=mI.filter(i=>i.projId===id);mF=mF.filter(f=>f.projId===id);mH=mH.filter(h=>h.projId===id);
     }
   }
+  if(di){mH=mH.filter(h=>{return !h.dataYMD||h.dataYMD>=di;});}
+  if(df){mH=mH.filter(h=>{return !h.dataYMD||h.dataYMD<=df;});}
   if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
   if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
   // Depósito IA: conta col C dentro do período selecionado
@@ -1144,18 +1226,20 @@ function getFilteredData(visOverride){
     if(df&&dd>df)return false;
     return true;
   });
-  return{mL,mI,mF,tDeps:mDeps.length};
+  return{mL,mI,mF,mH,tDeps:mDeps.length};
 }
 
-function calcMetrics(mL,mI,mF,tDeps){
+function calcMetrics(mL,mI,mF,tDeps,mH){
   const tL=mL.length,tF=mF.reduce((s,f)=>s+f.qtd,0);
   const inv=mI.reduce((s,i)=>s+i.spend,0);
   const conv=tL>0?(tF/tL*100).toFixed(1)+'%':'—';
   const porCasa={};
   mF.forEach(f=>{if(!porCasa[f.casaNome])porCasa[f.casaNome]={qtd:0,receita:0};porCasa[f.casaNome].qtd+=f.qtd;porCasa[f.casaNome].receita+=f.receita;});
-  const rec=Object.values(porCasa).reduce((s,v)=>s+v.receita,0);
+  const recCPA=Object.values(porCasa).reduce((s,v)=>s+v.receita,0);
+  const recHotmart=(mH||[]).reduce((s,h)=>s+h.valorBRL,0);
+  const rec=recCPA+recHotmart;
   const lucro=rec-inv;const roi=inv>0?rec/inv:0;const cftd=tF>0?inv/tF:0;const cpl=tL>0?inv/tL:0;
-  return{tL,tD:tDeps!==undefined?tDeps:0,tF,inv,conv,porCasa,rec,lucro,roi,cftd,cpl};
+  return{tL,tD:tDeps!==undefined?tDeps:0,tF,inv,conv,porCasa,rec,recCPA,recHotmart,lucro,roi,cftd,cpl};
 }
 
 function setCurrency(c){
@@ -1173,8 +1257,8 @@ function fmtBRL(v){return'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFrac
 function fmtUSD(v){return'$ '+parseFloat(v).toFixed(2)}
 
 function calcular(){
-  const {mL,mI,mF,tDeps}=getFilteredData();
-  const m=calcMetrics(mL,mI,mF,tDeps);
+  const {mL,mI,mF,mH,tDeps}=getFilteredData();
+  const m=calcMetrics(mL,mI,mF,tDeps,mH);
   document.getElementById('h-inv').textContent=m.inv>0?fmt(m.inv):'—';
   document.getElementById('h-leads').textContent=m.tL.toLocaleString('pt-BR');
   document.getElementById('h-ftds').textContent=m.tF.toLocaleString('pt-BR');
@@ -1186,6 +1270,8 @@ function calcular(){
   document.getElementById('m-conv').textContent=m.conv;
   document.getElementById('m-cftd').textContent=m.cftd>0?fmt(m.cftd):'—';
   document.getElementById('m-cpl').textContent=m.cpl>0?fmt(m.cpl):'—';
+  document.getElementById('m-rec-cpa').textContent=m.recCPA>0?fmt(m.recCPA):'—';
+  document.getElementById('m-rec-info').textContent=m.recHotmart>0?fmt(m.recHotmart):'—';
   const di=document.getElementById('dt-i').value,df=document.getElementById('dt-f').value;
   document.getElementById('periodo-badge').textContent=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
   const rows=Object.entries(m.porCasa).sort((a,b)=>b[1].receita-a[1].receita);
@@ -1225,11 +1311,11 @@ function renderBreakdown(){
   if(!opProjs.length){sec.style.display='none';return;}
   sec.style.display='block';
   document.getElementById('proj-breakdown-cards').innerHTML=opProjs.map(p=>{
-    const {mL,mI,mF,tDeps}=getFilteredData('proj:'+p.id);
-    const m=calcMetrics(mL,mI,mF,tDeps);
+    const {mL,mI,mF,mH,tDeps}=getFilteredData('proj:'+p.id);
+    const m=calcMetrics(mL,mI,mF,tDeps,mH);
     return`<div class="proj-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-        <span style="font-size:13px;font-weight:500;color:#ccc">${p.nome}</span>
+        <span style="font-size:13px;font-weight:500;color:var(--text2)">${p.nome}</span>
         <span class="pill pb" style="font-size:10px">${p.op}</span>
       </div>
       <div class="proj-mini">
@@ -1271,9 +1357,9 @@ function renderFTDs(){
     const tFTD=items.reduce((s,f)=>s+f.qtd,0);
     return`<div class="day-row">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div><span style="font-size:13px;font-weight:500;color:#ccc">${dia.split('-').reverse().join('/')}</span>
+        <div><span style="font-size:13px;font-weight:500;color:var(--text2)">${dia.split('-').reverse().join('/')}</span>
           <span class="pill p0" style="margin-left:8px;font-size:10px">${tFTD} FTDs</span></div>
-        <div style="text-align:right"><div style="font-size:13px;color:#4ade80;font-weight:500">${fmtUSD(tUSD)}</div><div style="font-size:11px;color:#555">${fmtBRL(tBRL)}</div></div>
+        <div style="text-align:right"><div style="font-size:13px;color:#4ade80;font-weight:500">${fmtUSD(tUSD)}</div><div style="font-size:11px;color:var(--text4)">${fmtBRL(tBRL)}</div></div>
       </div>
       <table style="font-size:12px">
         <thead><tr><th>Projeto</th><th>Casa</th><th>FTDs</th><th>CPA</th><th>USD</th><th>BRL</th><th></th></tr></thead>
@@ -1489,9 +1575,9 @@ function setOntem(){
   calcular();
 }
 function toYMD(s){
-  if(!s)return'';s=s.trim();
+  if(!s)return'';s=s.trim().split(' ')[0]; // remove time part if present
   if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.substring(0,10);
-  if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){const p=s.split('/');return`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){const p=s.split('/');return`${p[2].substring(0,4)}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}
   return s.substring(0,10);
 }
 function extractId(input){const m=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:input.trim();}
