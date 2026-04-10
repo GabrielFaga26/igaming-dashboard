@@ -175,6 +175,10 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     </div>
     <div><label>De</label><input type="date" id="dt-i" style="width:145px"/></div>
     <div><label>Até</label><input type="date" id="dt-f" style="width:145px"/></div>
+    <div style="display:flex;gap:6px;align-self:flex-end">
+      <button class="btn bs" onclick="setHoje()">Hoje</button>
+      <button class="btn bs" onclick="setOntem()">Ontem</button>
+    </div>
     <button class="btn bp" style="align-self:flex-end" onclick="calcular()">Calcular</button>
     <div style="align-self:flex-end">
       <div class="cur-toggle">
@@ -493,9 +497,8 @@ async function mostrarApp(){
   const isAdmin=currentUserData?.role==='admin';
   console.log('isAdmin:',isAdmin,'role:',currentUserData?.role);
 
-  // Gestor: esconde seletor vis-sel (só vê sua operação)
+  // Gestor: mostra seletor mas apenas com seus projetos
   if(!isAdmin){
-    document.getElementById('vis-sel-wrap').style.display='none';
     document.getElementById('cfg-gestores-section').style.display='none';
   } else {
     document.getElementById('cfg-gestores-section').style.display='block';
@@ -514,7 +517,7 @@ async function mostrarApp(){
       if(ftdOp){ftdOp.value=currentUserData.operacao;filtrarProjetosPorOp();}
     },300);
   }
-  const td=new Date().toISOString().split('T')[0];
+  const td=getBrasiliaDate(0);
   document.getElementById('dt-i').value=td;
   document.getElementById('dt-f').value=td;
   document.getElementById('ftd-data').value=td;
@@ -935,11 +938,21 @@ function getFilteredData(visOverride){
   }
   if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
   if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
+  // Depósitos sheet: col C preenchida, filtrado por op/proj e pelo período da col C
   let mDeps=leads.filter(l=>l.ftdReal);
   if(vis){
     if(vis.startsWith('op:')){const o=vis.slice(3);mDeps=mDeps.filter(l=>l.opNome===o);}
     else{const id=parseInt(vis.replace('proj:',''));mDeps=mDeps.filter(l=>l.projId===id);}
   }
+  // filtra pela data do depósito (col C) se disponível
+  if(di)mDeps=mDeps.filter(l=>{
+    const dd=l.dataDeposito||toYMD(l.deposito);
+    return !dd||dd>=di;
+  });
+  if(df)mDeps=mDeps.filter(l=>{
+    const dd=l.dataDeposito||toYMD(l.deposito);
+    return !dd||dd<=df;
+  });
   return{mL,mI,mF,tDeps:mDeps.length};
 }
 
@@ -1205,6 +1218,24 @@ function aba(el,id){
 
 function onVisChange(){calcular();}
 
+function getBrasiliaDate(offsetDays=0){
+  const now=new Date();
+  // Brasilia = UTC-3
+  const brasilia=new Date(now.getTime()-(3*60*60*1000)+(offsetDays*24*60*60*1000));
+  return brasilia.toISOString().split('T')[0];
+}
+function setHoje(){
+  const d=getBrasiliaDate(0);
+  document.getElementById('dt-i').value=d;
+  document.getElementById('dt-f').value=d;
+  calcular();
+}
+function setOntem(){
+  const d=getBrasiliaDate(-1);
+  document.getElementById('dt-i').value=d;
+  document.getElementById('dt-f').value=d;
+  calcular();
+}
 function toYMD(s){
   if(!s)return'';s=s.trim();
   if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.substring(0,10);
@@ -1226,15 +1257,20 @@ function updateSelects(){
   const isAdmin=currentUserData?.role==='admin';
   console.log('isAdmin:',isAdmin,'role:',currentUserData?.role);
   const vs=document.getElementById('vis-sel'),vv=vs.value;
-  if(isAdmin){
-    const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
-    vs.innerHTML='<option value="">Todos</option>'+ops.map(op=>`<optgroup label="Operação: ${op}"><option value="op:${op}">Operação: ${op} (consolidado)</option>${projetos.filter(p=>p.op===op).map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('')}</optgroup>`).join('');
-    if(vv)vs.value=vv;
-  }
-  // operações para gestores
   const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
+  if(isAdmin){
+    vs.innerHTML='<option value="">Todos</option>'+ops.map(op=>`<optgroup label="Operação: ${op}"><option value="op:${op}">Operação: ${op} (consolidado)</option>${projetos.filter(p=>p.op===op).map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('')}</optgroup>`).join('');
+  } else {
+    const opGestor=currentUserData?.operacao||'';
+    const projGestor=projetos.filter(p=>p.op===opGestor);
+    vs.innerHTML=`<option value="op:${opGestor}">${opGestor} (todos)</option>`+projGestor.map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('');
+    if(!vv)vs.value=`op:${opGestor}`;
+  }
+  if(vv)vs.value=vv;
+  // operações para gestores
+  const ops2=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
   const gOp=document.getElementById('g-op');
-  if(gOp)gOp.innerHTML='<option value="">Selecione...</option>'+ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+  if(gOp)gOp.innerHTML='<option value="">Selecione...</option>'+ops2.map(o=>`<option value="${o}">${o}</option>`).join('');
 
   // ftd-op: lista de operações únicas
   const opsUniq=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
