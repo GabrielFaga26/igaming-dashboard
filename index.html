@@ -297,6 +297,9 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
           <div><label>Nome</label><input type="text" id="c-nome" placeholder="Ex: Melbet"/></div>
           <div><label>CPA padrão (USD por FTD)</label><input type="number" id="c-cpa" placeholder="Ex: 25"/></div>
           <div><label>Geo / País</label><input type="text" id="c-geo" placeholder="Ex: Mexico"/></div>
+          <div id="c-op-wrap"><label>Operação</label>
+            <select id="c-op"><option value="">Selecione...</option></select>
+          </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn bp" onclick="addCasaAndClose()">Salvar casa</button>
@@ -418,6 +421,10 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div style="margin-bottom:1rem">
       <label>CPA padrão (USD)</label>
       <input type="number" id="ec-cpa" placeholder="Ex: 25"/>
+    </div>
+    <div id="ec-op-wrap" style="margin-bottom:1rem">
+      <label>Operação</label>
+      <select id="ec-op"><option value="">Selecione...</option></select>
     </div>
     <div class="toggle-row">
       <label class="toggle"><input type="checkbox" id="ec-periodos-toggle" onchange="togglePeriodos()"/><span class="toggle-slider"></span></label>
@@ -581,7 +588,9 @@ async function salvarDolarDB(val){
 
 // CASAS
 async function carregarCasas(){
-  const {data}=await sb.from('casas').select('*').order('nome');
+  let query=sb.from('casas').select('*').order('nome');
+  if(currentUserData?.role==='gestor')query=query.eq('operacao',currentUserData.operacao);
+  const {data}=await query;
   if(data)casas=data.map(c=>({...c,usePeriodos:c.use_periodos,periodos:c.periodos||[]}));
   renderCasas();
 }
@@ -589,7 +598,11 @@ async function carregarCasas(){
 async function addCasa(){
   const nome=document.getElementById('c-nome').value.trim();
   if(!nome){alert('Informe o nome');return;}
-  const {data,error}=await sb.from('casas').insert({nome,cpa:parseFloat(document.getElementById('c-cpa').value)||0,geo:document.getElementById('c-geo').value.trim(),ativo:true,use_periodos:false,periodos:[]}).select().single();
+  const opEl=document.getElementById('c-op');
+  const opVal=opEl?opEl.value:'';
+  // gestor: usa sua própria operação
+  const opFinal=currentUserData?.role==='gestor'?currentUserData.operacao:opVal;
+  const {data,error}=await sb.from('casas').insert({nome,cpa:parseFloat(document.getElementById('c-cpa').value)||0,geo:document.getElementById('c-geo').value.trim(),ativo:true,use_periodos:false,periodos:[],operacao:opFinal}).select().single();
   if(error){alert('Erro: '+error.message);return;}
   casas.push({...data,usePeriodos:false,periodos:[]});
   renderCasas();updateSelects();clearCasa();log('Casa: '+nome);
@@ -617,6 +630,16 @@ function abrirEditCasa(id){
   document.getElementById('ec-nome').value=c.nome||'';
   document.getElementById('ec-geo').value=c.geo||'';
   document.getElementById('ec-cpa').value=c.cpa||'';
+  // populate ec-op
+  const ecOpWrap=document.getElementById('ec-op-wrap');
+  const ecOpEl=document.getElementById('ec-op');
+  if(currentUserData?.role==='admin'){
+    if(ecOpWrap)ecOpWrap.style.display='block';
+    const opsDisp=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
+    if(ecOpEl)ecOpEl.innerHTML='<option value="">Sem operação</option>'+opsDisp.map(o=>`<option value="${o}" ${c.operacao===o?'selected':''}>${o}</option>`).join('');
+  } else {
+    if(ecOpWrap)ecOpWrap.style.display='none';
+  }
   document.getElementById('ec-periodos-toggle').checked=!!c.usePeriodos;
   renderPeriodosForm(c.periodos||[]);
   document.getElementById('ec-periodos-section').style.display=c.usePeriodos?'block':'none';
@@ -661,7 +684,9 @@ async function salvarEditCasa(){
     const to=row.querySelector('.per-to').value;
     if(cpa&&from)periodos.push({cpa,from,to});
   });
-  const updates={nome:document.getElementById('ec-nome').value.trim(),geo:document.getElementById('ec-geo').value.trim(),cpa:parseFloat(document.getElementById('ec-cpa').value)||0,use_periodos:usePeriodos,periodos};
+  const ecOpEl=document.getElementById('ec-op');
+  const ecOp=ecOpEl?ecOpEl.value:'';
+  const updates={nome:document.getElementById('ec-nome').value.trim(),geo:document.getElementById('ec-geo').value.trim(),cpa:parseFloat(document.getElementById('ec-cpa').value)||0,use_periodos:usePeriodos,periodos,operacao:ecOp||undefined};
   await sb.from('casas').update(updates).eq('id',editCasaId);
   const idx=casas.findIndex(c=>c.id===editCasaId);
   if(idx>=0)casas[idx]={...casas[idx],...updates,usePeriodos,periodos};
@@ -671,19 +696,39 @@ async function salvarEditCasa(){
 
 function renderCasas(){
   document.getElementById('casas-count').textContent=casas.length;
+  const isAdmin=currentUserData?.role==='admin';
   const el=document.getElementById('lista-casas');
   if(!casas.length){el.innerHTML='<div class="empty">Nenhuma casa</div>';return;}
-  el.innerHTML=casas.map(c=>`<div style="background:#0d0d0d;border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #1e1e1e;opacity:${c.ativo===false?0.45:1}">
-    <div>
-      <div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}${c.ativo===false?' <span class="pill p0" style="font-size:10px">oculta</span>':''}</div>
-      <div style="font-size:12px;color:#555;margin-top:2px">${c.usePeriodos&&c.periodos&&c.periodos.length?c.periodos.map(p=>`$${p.cpa} (${p.from}${p.to?' → '+p.to:''})`).join(' · '):'$'+c.cpa+'/FTD = R$'+(c.cpa*dolar).toFixed(2)}${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}</div>
-    </div>
-    <div style="display:flex;gap:6px">
-      <button class="btn bs" onclick="toggleCasaAtiva(${c.id})" title="${c.ativo===false?'Ativar':'Ocultar'}" style="padding:5px 10px">&#9728;</button>
-      <button class="btn bs" onclick="abrirEditCasa(${c.id})">Editar</button>
-      <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
-    </div>
-  </div>`).join('');
+  function casaCard(c){
+    return`<div style="background:#0d0d0d;border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #1e1e1e;opacity:${c.ativo===false?0.45:1}">
+      <div>
+        <div style="font-size:14px;font-weight:500;color:#e8e8e8">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}${c.ativo===false?' <span class="pill p0" style="font-size:10px">oculta</span>':''}</div>
+        <div style="font-size:12px;color:#555;margin-top:2px">${c.usePeriodos&&c.periodos&&c.periodos.length?c.periodos.map(p=>`$${p.cpa} (${p.from}${p.to?' → '+p.to:''})`).join(' · '):'$'+c.cpa+'/FTD = R$'+(c.cpa*dolar).toFixed(2)}${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn bs" onclick="toggleCasaAtiva(${c.id})" title="${c.ativo===false?'Ativar':'Ocultar'}" style="padding:5px 10px">&#9728;</button>
+        <button class="btn bs" onclick="abrirEditCasa(${c.id})">Editar</button>
+        <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
+      </div>
+    </div>`;
+  }
+  if(isAdmin){
+    // Admin: agrupa por operação
+    const porOp={};
+    casas.forEach(c=>{
+      const op=c.operacao||'Sem operação';
+      if(!porOp[op])porOp[op]=[];
+      porOp[op].push(c);
+    });
+    el.innerHTML=Object.entries(porOp).map(([op,cs])=>`
+      <div style="margin-bottom:1.25rem">
+        <div style="font-size:11px;font-weight:500;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Operação: ${op}</div>
+        ${cs.map(c=>casaCard(c)).join('')}
+      </div>`).join('');
+  } else {
+    // Gestor: lista simples
+    el.innerHTML=casas.map(c=>casaCard(c)).join('');
+  }
 }
 
 // PROJETOS
@@ -966,10 +1011,20 @@ function getFilteredData(visOverride){
   if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
   if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
   // Depósito IA: conta col C dentro do período selecionado
-  // Depósito IA: pega os projIds que já passaram no filtro de mL
-  // e conta leads com col C (dataDeposito) dentro do período
-  const projIdsVisiveis=new Set(mL.map(l=>l.projId));
-  let mDeps=leads.filter(l=>projIdsVisiveis.has(l.projId));
+  // Depósito IA: filtra pelos projetos visíveis no seletor
+  // independente do período de entrada (col B)
+  let mDeps=leads;
+  if(vis){
+    if(vis.startsWith('op:')){
+      // pega todos os projIds da operação selecionada
+      const projIdsOp=new Set(projetos.filter(p=>p.op===vis.slice(3)).map(p=>p.id));
+      mDeps=mDeps.filter(l=>projIdsOp.has(l.projId));
+    } else {
+      const id=parseInt(vis.replace('proj:',''));
+      mDeps=mDeps.filter(l=>l.projId===id);
+    }
+  }
+  // filtra pela data do depósito (col C) dentro do período
   mDeps=mDeps.filter(l=>{
     const dd=(l.dataDeposito||'').trim();
     if(!dd)return false;
@@ -1362,7 +1417,15 @@ function updateSelects(){
   // ftd-proj: todos inicialmente (filtrado por filtrarProjetosPorOp quando op selecionada)
   document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
   document.getElementById('hist-proj-fil').innerHTML='<option value="">Todos</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  // ftd-casa: gestor vê só casas da sua operação (já filtrado no carregarCasas)
+  // admin vê todas
   document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.filter(c=>c.ativo!==false).map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
+  // c-op: popula com operações disponíveis (só para admin)
+  const cOpEl=document.getElementById('c-op');
+  if(cOpEl){
+    const opsDisp=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
+    cOpEl.innerHTML='<option value="">Selecione...</option>'+opsDisp.map(o=>`<option value="${o}">${o}</option>`).join('');
+  }
 }
 
 function log(msg){
