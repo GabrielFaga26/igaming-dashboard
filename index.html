@@ -187,6 +187,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
       </div>
     </div>
     <span id="import-status" style="font-size:12px;color:#444;align-self:flex-end"></span>
+    <button class="btn bs" style="align-self:flex-end" onclick="debugColC()" id="btn-debug-colc">🔍 Testar col C</button>
   </div>
 
   <div class="hero">
@@ -965,20 +966,10 @@ function getFilteredData(visOverride){
   if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
   if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
   // Depósito IA: conta col C dentro do período selecionado
-  // Depósito IA: usa mL (já filtrado por vis+período de entrada) como base
-  // mas filtra pela data da col C, não pela col B
-  // pega todos os leads do mesmo vis sem filtro de data de entrada
-  let mDeps=leads;
-  if(vis){
-    if(vis.startsWith('op:')){
-      const o=vis.slice(3);
-      mDeps=mDeps.filter(l=>l.projId&&projetos.find(p=>p.id===l.projId&&p.op===o));
-    } else {
-      const id=parseInt(vis.replace('proj:',''));
-      mDeps=mDeps.filter(l=>l.projId===id);
-    }
-  }
-  // filtra pela data do DEPÓSITO (col C) dentro do período
+  // Depósito IA: pega os projIds que já passaram no filtro de mL
+  // e conta leads com col C (dataDeposito) dentro do período
+  const projIdsVisiveis=new Set(mL.map(l=>l.projId));
+  let mDeps=leads.filter(l=>projIdsVisiveis.has(l.projId));
   mDeps=mDeps.filter(l=>{
     const dd=(l.dataDeposito||'').trim();
     if(!dd)return false;
@@ -1251,6 +1242,37 @@ function aba(el,id){
 
 function onVisChange(){calcular();}
 
+async function debugColC(){
+  const di=document.getElementById('dt-i').value;
+  const df=document.getElementById('dt-f').value;
+  if(!di||!df){alert('Selecione o período primeiro');return;}
+  const btn=document.getElementById('btn-debug-colc');
+  btn.textContent='Consultando...';btn.disabled=true;
+  log(`--- Teste col C: período ${di} → ${df} ---`);
+  for(const p of projetos){
+    if(!p.leadsId||!p.leadsAba)continue;
+    try{
+      const resp=await fetch(buildURL(p.leadsId,p.leadsAba));
+      if(!resp.ok)throw new Error('HTTP '+resp.status);
+      const rows=parseCSV(await resp.text());
+      const isDate=v=>!!(v&&(/\d{1,2}\/\d{1,2}\/\d{4}/.test(v)||/\d{4}-\d{2}-\d{2}/.test(v)));
+      let count=0;
+      const datasEncontradas=new Set();
+      rows.forEach(r=>{
+        const dep=(r[2]||'').trim();
+        if(!dep||!isDate(dep))return;
+        const ymd=toYMD(dep);
+        if(ymd>=di&&ymd<=df){count++;datasEncontradas.add(ymd);}
+      });
+      log(`Projeto "${p.nome}" / aba "${p.leadsAba}": ${rows.length} linhas totais, col C no período = ${count} (datas: ${[...datasEncontradas].join(', ')||'nenhuma'})`);
+    }catch(e){log(`Projeto "${p.nome}": ERRO — ${e.message}`);}
+  }
+  log('--- Fim do teste ---');
+  btn.textContent='🔍 Testar col C';btn.disabled=false;
+  // navigate to config to see log
+  const configTab=document.querySelectorAll('.tab')[2];
+  if(configTab){aba(configTab,'config');}
+}
 function toggleForm(formId,btn){
   const el=document.getElementById(formId);
   const isOpen=el.style.display!=='none';
