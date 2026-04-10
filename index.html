@@ -336,7 +336,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
         <div class="sheet-block-title">Planilha de Leads</div>
         <div style="font-size:11px;color:var(--text5);margin-bottom:10px">Col A = ID Telegram · Col B = Data entrada · Col C = Data depósito</div>
         <div class="fg" style="margin-bottom:6px">
-          <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" id="p-leads-id" placeholder="Cole a URL ou o ID"/></div>
+          <div style="grid-column:1/-1"><label>ID ou URL da planilha</label><input type="text" id="p-leads-id" value="https://docs.google.com/spreadsheets/d/1y6hpCTiV5DVQQw82grrISDOh6MZCbcu_kDrIoYkwv5Q/edit?usp=sharing" placeholder="Cole a URL ou o ID"/></div>
           <div><label>Nome exato da aba</label><input type="text" id="p-leads-aba" placeholder="Ex: Alan - Mexico"/></div>
           <div style="display:flex;align-items:flex-end"><button class="btn bs" style="width:100%" onclick="testarSheet('p-leads-id','p-leads-aba','leads-test-status')">Testar</button></div>
         </div>
@@ -351,7 +351,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
         <div id="contas-anuncio-form">
           <div class="acc-block">
             <div class="fg" style="margin-bottom:6px">
-              <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" placeholder="Cole a URL ou ID"/></div>
+              <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="inv-id" value="https://docs.google.com/spreadsheets/d/1gsJOWEDV7uSvcsdWnXhPOemAt5R-x0_2mHXBfpp6NDI/edit?usp=sharing" placeholder="Cole a URL ou ID"/></div>
               <div><label>Nome exato da aba</label><input type="text" class="inv-aba" placeholder="Ex: Dados FB CA_3325"/></div>
               <div><label>Filtro campanha (opcional)</label><input type="text" class="inv-filtro" placeholder="Ex: MÉXICO"/></div>
               <div><label>Moeda</label><select class="inv-moeda"><option value="BRL">Real (BRL)</option><option value="USD">Dólar (USD)</option></select></div>
@@ -1463,6 +1463,9 @@ function filtrarProjetosPorOp(){
   const op=document.getElementById('ftd-op').value;
   const projFiltrados=op?projetos.filter(p=>p.op===op):projetos;
   document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projFiltrados.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  // filter casas by operacao
+  const casasFiltradas=op?casas.filter(c=>c.ativo!==false&&(c.operacao===op||!c.operacao)):casas.filter(c=>c.ativo!==false);
+  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casasFiltradas.map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
   document.getElementById('p-cpa').textContent='—';
   document.getElementById('p-usd').textContent='—';
 }
