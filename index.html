@@ -124,8 +124,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div class="login-sub">Entre com sua conta para continuar</div>
     <div class="login-err" id="login-err"></div>
     <div style="margin-bottom:1rem">
-      <label>Email</label>
-      <input type="email" id="login-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')fazerLogin()"/>
+      <label>Usuário</label>
+      <input type="text" id="login-email" placeholder="Ex: alan" autocomplete="username" onkeydown="if(event.key==='Enter')fazerLogin()"/>
     </div>
     <div style="margin-bottom:1.5rem">
       <label>Senha</label>
@@ -238,6 +238,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
   <div class="card">
     <div class="ch"><span class="ct">Lançamento do dia</span></div>
     <div class="fg">
+      <div><label>Operação</label><select id="ftd-op" onchange="filtrarProjetosPorOp()"><option value="">Selecione...</option></select></div>
       <div><label>Projeto</label><select id="ftd-proj" onchange="calcPrev()"><option value="">Selecione...</option></select></div>
       <div><label>Data</label><input type="date" id="ftd-data" onchange="calcPrev()"/></div>
       <div><label>Casa de apostas</label><select id="ftd-casa" onchange="calcPrev()"><option value="">Selecione...</option></select></div>
@@ -352,7 +353,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
     <div class="card">
       <div class="fg">
         <div><label>Nome</label><input type="text" id="g-nome" placeholder="Ex: João Silva"/></div>
-        <div><label>Email</label><input type="text" id="g-email" placeholder="joao@email.com"/></div>
+        <div><label>Nome de usuário</label><input type="text" id="g-email" placeholder="Ex: joao" autocomplete="off"/></div>
         <div><label>Senha inicial</label><input type="password" id="g-senha" placeholder="Mínimo 6 caracteres"/></div>
         <div><label>Operação vinculada</label>
           <select id="g-op"><option value="">Selecione a operação...</option></select>
@@ -503,6 +504,13 @@ async function mostrarApp(){
   await carregarFTDs();
   updateSelects();
 
+  // Gestor: pré-seleciona a operação no lançamento de FTD
+  if(!isAdmin&&currentUserData?.operacao){
+    setTimeout(()=>{
+      const ftdOp=document.getElementById('ftd-op');
+      if(ftdOp){ftdOp.value=currentUserData.operacao;filtrarProjetosPorOp();}
+    },300);
+  }
   const td=new Date().toISOString().split('T')[0];
   document.getElementById('dt-i').value=td;
   document.getElementById('dt-f').value=td;
@@ -510,9 +518,14 @@ async function mostrarApp(){
   document.getElementById('last-up').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
 }
 
+function toEmail(usuario){
+  // se já for email, usa direto; senão converte para usuario@igaming.app
+  return usuario.includes('@')?usuario:usuario.toLowerCase()+'@igaming.app';
+}
 async function fazerLogin(){
-  const email=document.getElementById('login-email').value.trim();
+  const usuario=document.getElementById('login-email').value.trim();
   const senha=document.getElementById('login-senha').value;
+  const email=toEmail(usuario);
   const err=document.getElementById('login-err');
   const btn=document.getElementById('btn-login');
   err.style.display='none';
@@ -810,18 +823,19 @@ async function carregarGestores(){
   el.innerHTML=data.map(g=>`<div class="sbox" style="display:flex;align-items:center;justify-content:space-between">
     <div>
       <div style="font-size:13px;font-weight:500;color:#e8e8e8">${g.nome}</div>
-      <div style="font-size:12px;color:#555">${g.email} · Operação: <span style="color:#60a5fa">${g.operacao||'—'}</span></div>
+      <div style="font-size:12px;color:#555">@${g.email.replace('@igaming.app','')} · Operação: <span style="color:#60a5fa">${g.operacao||'—'}</span></div>
     </div>
   </div>`).join('');
 }
 
 async function criarGestor(){
   const nome=document.getElementById('g-nome').value.trim();
-  const email=document.getElementById('g-email').value.trim();
+  const usuario=document.getElementById('g-email').value.trim();
+  const email=toEmail(usuario);
   const senha=document.getElementById('g-senha').value;
   const op=document.getElementById('g-op').value;
   const st=document.getElementById('gestor-status');
-  if(!nome||!email||!senha||!op){st.textContent='Preencha todos os campos';st.style.color='#f87171';return;}
+  if(!nome||!usuario||!senha||!op){st.textContent='Preencha todos os campos';st.style.color='#f87171';return;}
   const btn=document.getElementById('btn-criar-gestor');
   btn.textContent='Criando...';btn.disabled=true;
   st.textContent='';
@@ -833,8 +847,8 @@ async function criarGestor(){
   if(error){st.textContent='Erro: '+error.message;st.style.color='#f87171';return;}
 
   if(data.user){
-    await sb.from('usuarios').insert({id:data.user.id,nome,email,role:'gestor',operacao:op});
-    st.textContent='✓ Acesso criado! O gestor receberá um email de confirmação.';
+    await sb.from('usuarios').insert({id:data.user.id,nome,email:email,role:'gestor',operacao:op});
+    st.textContent='✓ Acesso criado! Usuário: '+usuario+' · Senha: '+senha;
     st.style.color='#4ade80';
     ['g-nome','g-email','g-senha'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('g-op').value='';
@@ -1080,6 +1094,13 @@ function exportFTDsExcel(){
 
 async function atualizarDia(){await importarTudo();}
 
+function filtrarProjetosPorOp(){
+  const op=document.getElementById('ftd-op').value;
+  const projFiltrados=op?projetos.filter(p=>p.op===op):projetos;
+  document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projFiltrados.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  document.getElementById('p-cpa').textContent='—';
+  document.getElementById('p-usd').textContent='—';
+}
 function calcPrev(){
   const casaId=parseInt(document.getElementById('ftd-casa').value);
   const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
@@ -1211,7 +1232,16 @@ function updateSelects(){
   const gOp=document.getElementById('g-op');
   if(gOp)gOp.innerHTML='<option value="">Selecione...</option>'+ops.map(o=>`<option value="${o}">${o}</option>`).join('');
 
-  document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome} (${p.op})</option>`).join('');
+  // ftd-op: lista de operações únicas
+  const opsUniq=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
+  const ftdOpEl=document.getElementById('ftd-op');
+  if(ftdOpEl){
+    const opAtual=ftdOpEl.value;
+    ftdOpEl.innerHTML='<option value="">Selecione...</option>'+opsUniq.map(o=>`<option value="${o}">${o}</option>`).join('');
+    if(opAtual)ftdOpEl.value=opAtual;
+  }
+  // ftd-proj: todos inicialmente (filtrado por filtrarProjetosPorOp quando op selecionada)
+  document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
   document.getElementById('hist-proj-fil').innerHTML='<option value="">Todos</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
   document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.filter(c=>c.ativo!==false).map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
 }
