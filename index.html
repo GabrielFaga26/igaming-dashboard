@@ -472,8 +472,10 @@ async function init(){
 }
 
 async function carregarUsuario(){
-  const {data}=await sb.from('usuarios').select('*').eq('id',currentUser.id).single();
+  const {data,error}=await sb.from('usuarios').select('*').eq('id',currentUser.id).single();
+  if(error)console.error('carregarUsuario error:',error);
   currentUserData=data;
+  console.log('usuario carregado:',data);
 }
 
 function mostrarLogin(){
@@ -489,6 +491,7 @@ async function mostrarApp(){
   document.getElementById('user-nome').textContent=currentUserData?.nome||currentUser.email;
 
   const isAdmin=currentUserData?.role==='admin';
+  console.log('isAdmin:',isAdmin,'role:',currentUserData?.role);
 
   // Gestor: esconde seletor vis-sel (só vê sua operação)
   if(!isAdmin){
@@ -1221,6 +1224,7 @@ function parseCSV(text){
 
 function updateSelects(){
   const isAdmin=currentUserData?.role==='admin';
+  console.log('isAdmin:',isAdmin,'role:',currentUserData?.role);
   const vs=document.getElementById('vis-sel'),vv=vs.value;
   if(isAdmin){
     const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
