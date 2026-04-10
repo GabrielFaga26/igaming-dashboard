@@ -277,7 +277,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div class="ch">
       <span class="ct">Histórico de dias</span>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <select id="hist-proj-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs()"><option value="">Todos</option></select>
+<select id="hist-op-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs()"><option value="">Todas as operações</option></select>
         <button class="btn bs bgreen" onclick="exportFTDsExcel()">Exportar Excel</button>
         <button class="btn bs bp" onclick="atualizarDia()">↻ Atualizar dados do dia</button>
       </div>
@@ -449,6 +449,31 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 </div>
 
 </div>
+</div>
+
+<!-- MODAL EDITAR FTD -->
+<div class="modal-overlay" id="modal-edit-ftd" style="display:none" onclick="if(event.target===this)closeModal('modal-edit-ftd')">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">Editar lançamento</div>
+    <input type="hidden" id="edit-ftd-id"/>
+    <div style="background:var(--bg3);border-radius:8px;padding:1rem;margin-bottom:1.25rem;border:1px solid var(--border)">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;align-items:center">
+        <span style="color:var(--text4)">Projeto</span><span id="edit-ftd-proj" style="font-weight:500;color:var(--text)">—</span>
+        <span style="color:var(--text4)">Casa</span><span id="edit-ftd-casa" style="font-weight:500;color:var(--text)">—</span>
+        <span style="color:var(--text4)">Data</span><span id="edit-ftd-data" style="font-weight:500;color:var(--text)">—</span>
+        <span style="color:var(--text4)">CPA</span><span id="edit-ftd-cpa" style="font-weight:500;color:#60a5fa">—</span>
+      </div>
+    </div>
+    <div style="margin-bottom:1.25rem">
+      <label style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px">Nova quantidade de FTDs</label>
+      <input type="number" id="edit-ftd-qtd" min="1" style="font-size:22px;font-weight:600;text-align:center" onkeydown="if(event.key==='Enter')salvarEditFTD()"/>
+    </div>
+    <div id="edit-ftd-status" style="font-size:12px;margin-bottom:8px;min-height:18px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn bp" style="flex:1;padding:10px" onclick="salvarEditFTD()">Salvar</button>
+      <button class="btn" onclick="closeModal('modal-edit-ftd')">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL EDITAR GESTOR -->
@@ -945,6 +970,14 @@ function renderProjetos(){
 }
 
 // FTDs
+function atualizarHistOpFil(){
+  const opsFil=[...new Set(ftds.map(f=>f.opNome).filter(Boolean))];
+  const el=document.getElementById('hist-op-fil');
+  if(!el)return;
+  const cur=el.value;
+  el.innerHTML='<option value="">Todas as operações</option>'+opsFil.map(o=>`<option value="${o}">${o}</option>`).join('');
+  if(cur)el.value=cur;
+}
 async function carregarFTDs(){
   let query=sb.from('ftds').select('*').order('data',{ascending:false});
   if(currentUserData?.role==='gestor'){
@@ -954,7 +987,7 @@ async function carregarFTDs(){
   }
   const {data}=await query;
   if(data)ftds=data.map(f=>({...f,projId:f.proj_id,projNome:f.proj_nome,opNome:f.op_nome,casaId:f.casa_id,casaNome:f.casa_nome,casaGeo:f.casa_geo,receitaUSD:f.receita_usd,receita:f.receita_brl}));
-  renderFTDs();
+  atualizarHistOpFil();renderFTDs();
 }
 
 async function salvarFTD(){
@@ -1348,8 +1381,8 @@ function renderChartInv(data){
 }
 
 function renderFTDs(){
-  const pf=document.getElementById('hist-proj-fil').value;
-  const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
+  const opFil=document.getElementById('hist-op-fil').value;
+  const dados=opFil?ftds.filter(f=>f.opNome===opFil):ftds;
   const el=document.getElementById('hist-dias');
   if(!dados.length){el.innerHTML='<div class="empty">Nenhum lançamento ainda</div>';return;}
   const porDia={};
@@ -1374,7 +1407,7 @@ function renderFTDs(){
           <td style="font-weight:500">${f.qtd}</td><td class="num">${fmtUSD(f.cpa)}</td>
           <td class="num" style="color:#4ade80">${fmtUSD(f.receitaUSD||0)}</td>
           <td class="num" style="color:#888">${fmtBRL(f.receita)}</td>
-          <td><button class="btn bs bd" onclick="removerFTD(${f.id})">×</button></td>
+          <td style="display:flex;gap:4px"><button class="btn bs" style="padding:4px 8px" onclick="editarFTD(${f.id})">✏️</button><button class="btn bs bd" onclick="removerFTD(${f.id})">×</button></td>
         </tr>`).join('')}</tbody>
       </table>
     </div>`;
@@ -1383,14 +1416,48 @@ function renderFTDs(){
 
 function exportFTDsExcel(){
   if(!ftds.length){alert('Nenhum lançamento');return;}
-  const pf=document.getElementById('hist-proj-fil').value;
-  const dados=pf?ftds.filter(f=>f.projId==pf):ftds;
+  const opFil=document.getElementById('hist-op-fil').value;
+  const dados=opFil?ftds.filter(f=>f.opNome===opFil):ftds;
   const rows=[['Data','Operação','Projeto','Casa','Geo','FTDs','CPA (USD)','Receita USD','Receita BRL'],...dados.map(f=>[String(f.data).split('-').reverse().join('/'),f.opNome||'',f.projNome,f.casaNome,f.casaGeo||'',f.qtd,f.cpa,(f.receitaUSD||0).toFixed(2),f.receita.toFixed(2)])];
   const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:12},{wch:14},{wch:18},{wch:14},{wch:10},{wch:8},{wch:10},{wch:14},{wch:14}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'FTDs');XLSX.writeFile(wb,'ftds-lancamentos.xlsx');log('Excel exportado');
 }
 
 async function atualizarDia(){await importarTudo();}
+
+function editarFTD(id){
+  const f=ftds.find(x=>x.id===id);if(!f)return;
+  document.getElementById('edit-ftd-id').value=id;
+  document.getElementById('edit-ftd-proj').textContent=f.projNome;
+  document.getElementById('edit-ftd-casa').textContent=f.casaNome+(f.casaGeo?' ('+f.casaGeo+')':'');
+  document.getElementById('edit-ftd-data').textContent=String(f.data).split('-').reverse().join('/');
+  document.getElementById('edit-ftd-qtd').value=f.qtd;
+  document.getElementById('edit-ftd-cpa').textContent=fmtUSD(f.cpa);
+  document.getElementById('edit-ftd-status').textContent='';
+  document.getElementById('modal-edit-ftd').style.display='flex';
+  setTimeout(()=>document.getElementById('edit-ftd-qtd').select(),100);
+}
+
+async function salvarEditFTD(){
+  const id=parseInt(document.getElementById('edit-ftd-id').value);
+  const qtd=parseInt(document.getElementById('edit-ftd-qtd').value)||0;
+  const st=document.getElementById('edit-ftd-status');
+  if(!qtd){st.textContent='Informe a quantidade';st.style.color='#f87171';return;}
+  const f=ftds.find(x=>x.id===id);if(!f)return;
+  const casa=casas.find(c=>c.id===f.casaId);
+  const cpa=getCPAForDate(casa,f.data);
+  const receitaUSD=cpa*qtd;
+  const receitaBRL=receitaUSD*dolar;
+  st.textContent='Salvando...';st.style.color='var(--text4)';
+  const {error}=await sb.from('ftds').update({qtd,cpa,receita_usd:receitaUSD,receita_brl:receitaBRL}).eq('id',id);
+  if(error){st.textContent='Erro: '+error.message;st.style.color='#f87171';return;}
+  const idx=ftds.findIndex(x=>x.id===id);
+  if(idx>=0)ftds[idx]={...ftds[idx],qtd,cpa,receitaUSD,receita:receitaBRL};
+  st.textContent='Salvo!';st.style.color='#4ade80';
+  renderFTDs();calcular();
+  setTimeout(()=>closeModal('modal-edit-ftd'),800);
+  log('FTD editado: '+f.projNome+' · '+f.casaNome+' · '+qtd+' FTDs');
+}
 
 function filtrarProjetosPorOp(){
   const op=document.getElementById('ftd-op').value;
@@ -1635,7 +1702,9 @@ function updateSelects(){
   }
   // ftd-proj: todos inicialmente (filtrado por filtrarProjetosPorOp quando op selecionada)
   document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
-  document.getElementById('hist-proj-fil').innerHTML='<option value="">Todos</option>'+projetos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  const opsFil=[...new Set(ftds.map(f=>f.opNome).filter(Boolean))];
+  const histOpEl=document.getElementById('hist-op-fil');
+  if(histOpEl)histOpEl.innerHTML='<option value="">Todas as operações</option>'+opsFil.map(o=>`<option value="${o}">${o}</option>`).join('');
   // ftd-casa: gestor vê só casas da sua operação (já filtrado no carregarCasas)
   // admin vê todas
   document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.filter(c=>c.ativo!==false).map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
