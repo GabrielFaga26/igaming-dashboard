@@ -1146,6 +1146,8 @@ async function importarTudo(){
         // build lookup: projId -> Set of hotmart IDs
         const projHids={};
         projetos.forEach(p=>{if(p.hotmartIds?.length)projHids[p.id]=new Set(p.hotmartIds);});
+        // debug: show first row to verify column positions
+        if(rows.length>0)log(`Hotmart cols: A=${rows[0][0]} B=${rows[0][1]} F=${rows[0][5]} J=${rows[0][9]} L=${rows[0][11]} M=${rows[0][12]}`);
         rows.forEach(r=>{
           const prodId=(r[11]||'').trim(); // col L (index 11)
           const valorUSD=parseFloat((r[5]||'').replace(/[^0-9.,]/g,'').replace(',','.'))||0; // col F
@@ -1159,7 +1161,10 @@ async function importarTudo(){
             }
           }
         });
+        // log amostra col L para debug
+        const sampleL=rows.slice(0,5).map(r=>`L="${r[11]}" K="${r[10]}" F="${r[5]}" J="${r[9]}"`);
         log(`Hotmart: ${rows.length} linhas, ${hotmartData.length} vendas vinculadas`);
+        log(`Hotmart amostra: ${sampleL.join(' | ')}`);
       }
     }
   }catch(e){log('Erro Hotmart: '+e.message);}
