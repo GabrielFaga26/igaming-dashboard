@@ -199,7 +199,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:4px}
   </div>
 
   <div class="sec-mg">
-    <div class="sm"><div class="sm-l">Depósitos sheet</div><div class="sm-v" id="m-deps">—</div></div>
+    <div class="sm"><div class="sm-l">Depósito IA</div><div class="sm-v" id="m-deps">—</div></div>
     <div class="sm"><div class="sm-l">Conv. lead→FTD</div><div class="sm-v" id="m-conv">—</div></div>
     <div class="sm"><div class="sm-l">Custo por FTD</div><div class="sm-v" id="m-cftd">—</div></div>
     <div class="sm"><div class="sm-l">CPL</div><div class="sm-v" id="m-cpl">—</div></div>
@@ -942,21 +942,22 @@ function getFilteredData(visOverride){
   }
   if(di){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d>=di;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d>=di;});mF=mF.filter(f=>f.data>=di);}
   if(df){mL=mL.filter(l=>{const d=toYMD(l.data);return d&&d<=df;});mI=mI.filter(i=>{const d=toYMD(i.data);return d&&d<=df;});mF=mF.filter(f=>f.data<=df);}
-  // Depósitos sheet: col C preenchida, filtrado por op/proj e pelo período da col C
-  let mDeps=leads.filter(l=>l.ftdReal);
+  // Depósito IA: conta col C dentro do período selecionado
+  let mDeps=leads.filter(l=>l.ftdReal); // ftdReal = col C tem data
   if(vis){
     if(vis.startsWith('op:')){const o=vis.slice(3);mDeps=mDeps.filter(l=>l.opNome===o);}
     else{const id=parseInt(vis.replace('proj:',''));mDeps=mDeps.filter(l=>l.projId===id);}
   }
-  // filtra pela data do depósito (col C) se disponível
-  if(di)mDeps=mDeps.filter(l=>{
-    const dd=l.dataDeposito||toYMD(l.deposito);
-    return !dd||dd>=di;
-  });
-  if(df)mDeps=mDeps.filter(l=>{
-    const dd=l.dataDeposito||toYMD(l.deposito);
-    return !dd||dd<=df;
-  });
+  // filtra pela data do depósito (col C) dentro do período
+  if(di||df){
+    mDeps=mDeps.filter(l=>{
+      const dd=l.dataDeposito; // já normalizado em toYMD na importação
+      if(!dd)return false; // sem data reconhecida, não conta
+      if(di&&dd<di)return false;
+      if(df&&dd>df)return false;
+      return true;
+    });
+  }
   return{mL,mI,mF,tDeps:mDeps.length};
 }
 
