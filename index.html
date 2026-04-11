@@ -304,21 +304,38 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div class="card">
       <div class="ch"><span class="ct">Casas cadastradas</span><span id="casas-count" class="pill pb">0</span></div>
       <div id="lista-casas"><div class="empty">Nenhuma casa cadastrada</div></div>
-      <div style="margin-top:1rem">
-        <button class="btn bp" onclick="toggleForm('form-nova-casa',this)" id="btn-nova-casa">+ Adicionar nova casa</button>
+      <div style="margin-top:1rem" id="wrap-btn-nova-casa">
+        <button class="btn bp" onclick="abrirFormNovaCasa()" id="btn-nova-casa">+ Adicionar nova casa</button>
       </div>
       <div id="form-nova-casa" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
-        <div class="fg">
-          <div><label>Nome</label><input type="text" id="c-nome" placeholder="Ex: Melbet"/></div>
-          <div><label>CPA padrão (USD por FTD)</label><input type="number" id="c-cpa" placeholder="Ex: 25"/></div>
-          <div><label>Geo / País</label><input type="text" id="c-geo" placeholder="Ex: Mexico"/></div>
-          <div id="c-op-wrap"><label>Operação</label>
-            <select id="c-op"><option value="">Selecione...</option></select>
+        <!-- ADMIN FORM -->
+        <div id="form-nova-casa-admin">
+          <div class="fg">
+            <div><label>Nome</label><input type="text" id="c-nome" placeholder="Ex: Melbet"/></div>
+            <div><label>CPA padrão (USD por FTD)</label><input type="number" id="c-cpa" placeholder="Ex: 25"/></div>
+            <div><label>Geo / País</label><input type="text" id="c-geo" placeholder="Ex: Mexico"/></div>
+            <div id="c-op-wrap"><label>Operação</label>
+              <select id="c-op"><option value="">Selecione...</option></select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn bp" onclick="addCasaAndClose()">Salvar casa</button>
+            <button class="btn" onclick="toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));clearCasa()">Cancelar</button>
           </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn bp" onclick="addCasaAndClose()">Salvar casa</button>
-          <button class="btn" onclick="toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));clearCasa()">Cancelar</button>
+        <!-- GESTOR FORM -->
+        <div id="form-nova-casa-gestor" style="display:none">
+          <div class="hint" style="margin-bottom:12px;font-size:12px;color:var(--text4)">Escolha uma casa cadastrada pelo admin e defina o CPA para sua operação</div>
+          <div class="fg">
+            <div><label>Casa de apostas</label>
+              <select id="gc-nome-sel"><option value="">Selecione a casa...</option></select>
+            </div>
+            <div><label>CPA padrão (USD por FTD)</label><input type="number" id="gc-cpa" placeholder="Ex: 25"/></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn bp" onclick="addCasaGestor()">Adicionar</button>
+            <button class="btn" onclick="toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'))">Cancelar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -512,7 +529,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 <div class="modal-overlay" id="modal-casa" style="display:none" onclick="if(event.target===this)closeModal('modal-casa')">
   <div class="modal">
     <div class="modal-title">Editar casa de apostas</div>
-    <div class="fg">
+    <div id="ec-admin-fields" class="fg" style="margin-bottom:1rem">
       <div><label>Nome</label><input type="text" id="ec-nome"/></div>
       <div><label>Geo / País</label><input type="text" id="ec-geo"/></div>
     </div>
@@ -625,6 +642,8 @@ async function mostrarApp(){
   // Gestor: mostra seletor mas apenas com seus projetos
   if(!isAdmin){
     document.getElementById('cfg-gestores-section').style.display='none';
+    // gestor pode adicionar casa mas só de nomes cadastrados pelo admin
+    // botão permanece visível
   } else {
     document.getElementById('cfg-gestores-section').style.display='block';
   }
@@ -745,18 +764,24 @@ function clearCasa(){['c-nome','c-cpa','c-geo'].forEach(id=>{const e=document.ge
 function abrirEditCasa(id){
   const c=casas.find(x=>x.id===id);if(!c)return;
   editCasaId=id;
+  const isAdmin=currentUserData?.role==='admin';
+  // admin fields
   document.getElementById('ec-nome').value=c.nome||'';
   document.getElementById('ec-geo').value=c.geo||'';
   document.getElementById('ec-cpa').value=c.cpa||'';
+  // show/hide admin-only fields
+  const adminFields=document.getElementById('ec-admin-fields');
+  if(adminFields)adminFields.style.display=isAdmin?'grid':'none';
   // populate ec-op
   const ecOpWrap=document.getElementById('ec-op-wrap');
   const ecOpEl=document.getElementById('ec-op');
-  if(currentUserData?.role==='admin'){
+  if(isAdmin){
     if(ecOpWrap)ecOpWrap.style.display='block';
     const opsDisp=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
     if(ecOpEl)ecOpEl.innerHTML='<option value="">Sem operação</option>'+opsDisp.map(o=>`<option value="${o}" ${c.operacao===o?'selected':''}>${o}</option>`).join('');
   } else {
     if(ecOpWrap)ecOpWrap.style.display='none';
+    // gestor só vê CPA e períodos - campos suficientes para configurar acordos
   }
   document.getElementById('ec-periodos-toggle').checked=!!c.usePeriodos;
   renderPeriodosForm(c.periodos||[]);
@@ -1601,6 +1626,46 @@ async function debugColC(){
   const configTab=document.querySelectorAll('.tab')[2];
   if(configTab){aba(configTab,'config');}
 }
+function abrirFormNovaCasa(){
+  const isAdmin=currentUserData?.role==='admin';
+  if(isAdmin){
+    // admin: opens full form
+    toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));
+    document.getElementById('form-nova-casa-admin').style.display='block';
+    document.getElementById('form-nova-casa-gestor').style.display='none';
+  } else {
+    // gestor: opens picker from admin-created houses
+    toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));
+    document.getElementById('form-nova-casa-admin').style.display='none';
+    document.getElementById('form-nova-casa-gestor').style.display='block';
+    // populate dropdown with casas not yet in this operacao
+    const gestorOp=currentUserData?.operacao||'';
+    const casasDisponiveis=casas.filter(c=>!c.operacao||c.operacao!==gestorOp);
+    // also get all house names from admin (casas with no operacao = available templates)
+    // show all unique names not already in gestor's op
+    const nomesNaOp=new Set(casas.filter(c=>c.operacao===gestorOp).map(c=>c.nome));
+    // get distinct casa names from admin casas (operacao is null/empty = master list)
+    const todasCasas=casas.filter(c=>!c.operacao||c.operacao==='');
+    const sel=document.getElementById('gc-nome-sel');
+    sel.innerHTML='<option value="">Selecione a casa...</option>'+todasCasas.filter(c=>!nomesNaOp.has(c.nome)).map(c=>`<option value="${c.nome}" data-geo="${c.geo||''}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
+  }
+}
+
+async function addCasaGestor(){
+  const sel=document.getElementById('gc-nome-sel');
+  const nome=sel.value;
+  const geo=sel.selectedOptions[0]?.dataset.geo||'';
+  const cpa=parseFloat(document.getElementById('gc-cpa').value)||0;
+  const gestorOp=currentUserData?.operacao?.split(',')[0]||'';
+  if(!nome){alert('Selecione uma casa');return;}
+  const {data,error}=await sb.from('casas').insert({nome,cpa,geo,ativo:true,use_periodos:false,periodos:[],operacao:gestorOp}).select().single();
+  if(error){alert('Erro: '+error.message);return;}
+  casas.push({...data,usePeriodos:false,periodos:[]});
+  renderCasas();updateSelects();
+  toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));
+  log('Casa adicionada: '+nome+' ('+gestorOp+')');
+}
+
 function toggleForm(formId,btn){
   const el=document.getElementById(formId);
   const isOpen=el.style.display!=='none';
