@@ -248,8 +248,13 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
   </div>
 
   <div id="proj-breakdown-section" style="display:none">
-    <div style="font-size:12px;color:var(--text5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Breakdown por projeto</div>
+    <div style="font-size:12px;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Breakdown por projeto</div>
     <div id="proj-breakdown-cards"></div>
+  </div>
+
+  <div id="resumo-operacoes-section" style="display:none">
+    <div style="font-size:12px;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Panorama por operação</div>
+    <div id="resumo-operacoes-cards"></div>
   </div>
 </div>
 
@@ -1496,6 +1501,7 @@ function calcular(){
   if(casaView==='grafico')renderCasasChart(m.porCasa);
   renderChartInv(mI);
   renderBreakdown();
+  renderResumoOperacoes();
 }
 
 function setCasaView(v){
@@ -1514,6 +1520,84 @@ function renderCasasChart(porCasa){
     type:'bar',data:{labels,datasets:[{label:'Receita',data:vals,backgroundColor:'#185FA5',borderRadius:4,barPercentage:0.6}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},color:'#555'},grid:{display:false},border:{color:'#1e1e1e'}},y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v:'R$'+v,color:'#555'},beginAtZero:true,grid:{color:'#141414'},border:{color:'#1e1e1e'}}}}
   });
+}
+
+function renderResumoOperacoes(){
+  const sec=document.getElementById('resumo-operacoes-section');
+  const vis=getVisValue();
+  const isAdmin=currentUserData?.role==='admin';
+  // only show when admin and vis is empty (Todos)
+  if(!isAdmin||vis){sec.style.display='none';return;}
+  const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
+  if(!ops.length){sec.style.display='none';return;}
+  sec.style.display='block';
+
+  const di=document.getElementById('dt-i').value;
+  const df=document.getElementById('dt-f').value;
+
+  document.getElementById('resumo-operacoes-cards').innerHTML=ops.map(op=>{
+    const {mL,mI,mF,mH,tDeps}=getFilteredData('op:'+op);
+    const m=calcMetrics(mL,mI,mF,tDeps,mH);
+    const opProjs=projetos.filter(p=>p.op===op);
+    const isPositive=m.lucro>=0;
+    return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:16px;font-weight:600;color:var(--text)">${op}</div>
+          <div style="font-size:12px;color:var(--text4);margin-top:2px">${opProjs.length} projeto${opProjs.length!==1?'s':''}: ${opProjs.map(p=>p.nome).join(', ')}</div>
+        </div>
+        <span class="pill ${m.roi>=1?'pg':'pr'}" style="font-size:12px;padding:4px 12px">ROI ${m.inv>0?m.roi.toFixed(2)+'x':'—'}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:${opProjs.length>1?'1rem':'0'}">
+        <div style="background:var(--bg3);border-radius:8px;padding:.75rem;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text4);text-transform:uppercase;margin-bottom:3px">Investimento</div>
+          <div style="font-size:15px;font-weight:500;color:#60a5fa">${m.inv>0?fmt(m.inv):'—'}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:.75rem;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text4);text-transform:uppercase;margin-bottom:3px">Leads</div>
+          <div style="font-size:15px;font-weight:500;color:var(--text2)">${m.tL.toLocaleString('pt-BR')}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:.75rem;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text4);text-transform:uppercase;margin-bottom:3px">FTDs</div>
+          <div style="font-size:15px;font-weight:500;color:var(--text2)">${m.tF.toLocaleString('pt-BR')}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:.75rem;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text4);text-transform:uppercase;margin-bottom:3px">Receita</div>
+          <div style="font-size:15px;font-weight:500;color:#4ade80">${m.rec>0?fmt(m.rec):'—'}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:.75rem;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text4);text-transform:uppercase;margin-bottom:3px">Lucro</div>
+          <div style="font-size:15px;font-weight:500;color:${isPositive?'#4ade80':'#f87171'}">${m.inv>0?fmt(m.lucro):'—'}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:.75rem;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text4);text-transform:uppercase;margin-bottom:3px">Depósito IA</div>
+          <div style="font-size:15px;font-weight:500;color:var(--text2)">${m.tD}</div>
+        </div>
+      </div>
+      ${opProjs.length>1?`
+      <details>
+        <summary style="font-size:12px;color:var(--text4);cursor:pointer;user-select:none;margin-bottom:8px">▸ Ver breakdown por projeto</summary>
+        <div style="margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px">
+          ${opProjs.map(p=>{
+            const {mL:pL,mI:pI,mF:pF,mH:pH,tDeps:pD}=getFilteredData('proj:'+p.id);
+            const pm=calcMetrics(pL,pI,pF,pD,pH);
+            return`<div style="background:var(--bg4);border-radius:8px;padding:.875rem;border:1px solid var(--border)">
+              <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px">${p.nome}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:12px">
+                <div><div style="color:var(--text4)">Invest.</div><div style="color:#60a5fa;font-weight:500">${pm.inv>0?fmt(pm.inv):'—'}</div></div>
+                <div><div style="color:var(--text4)">FTDs</div><div style="color:var(--text2);font-weight:500">${pm.tF}</div></div>
+                <div><div style="color:var(--text4)">Receita</div><div style="color:#4ade80;font-weight:500">${pm.rec>0?fmt(pm.rec):'—'}</div></div>
+                <div><div style="color:var(--text4)">Lucro</div><div style="color:${pm.lucro>=0?'#4ade80':'#f87171'};font-weight:500">${pm.inv>0?fmt(pm.lucro):'—'}</div></div>
+                <div><div style="color:var(--text4)">ROI</div><div style="color:${pm.roi>=1?'#4ade80':pm.inv>0?'#f87171':'var(--text4)'};font-weight:500">${pm.inv>0?pm.roi.toFixed(2)+'x':'—'}</div></div>
+                <div><div style="color:var(--text4)">Dep. IA</div><div style="color:var(--text2);font-weight:500">${pm.tD}</div></div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </details>`:''
+      }
+    </div>`;
+  }).join('');
 }
 
 function renderBreakdown(){
