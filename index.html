@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Painel iGaming</title>
+<title>Dashboard RevWinSolutions</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -132,7 +132,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 <!-- LOGIN -->
 <div id="login-screen" class="login-wrap" style="display:none">
   <div class="login-box">
-    <div class="login-title">Painel iGaming</div>
+    <div class="login-title">Dashboard RevWinSolutions</div>
     <div class="login-sub">Entre com sua conta para continuar</div>
     <div class="login-err" id="login-err"></div>
     <div style="margin-bottom:1rem">
@@ -153,7 +153,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 
 <div class="topbar">
   <div>
-    <div style="font-size:20px;font-weight:600;color:var(--text)">Painel iGaming</div>
+    <div style="font-size:20px;font-weight:600;color:var(--text)">RevWinSolutions</div>
     <div style="font-size:12px;color:var(--text5);margin-top:2px" id="last-up">—</div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -245,6 +245,18 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
       <div class="ch"><span class="ct">Investimento por dia</span></div>
       <div style="position:relative;height:190px"><canvas id="chart-inv" role="img" aria-label="Investimento diário">Investimento diário.</canvas></div>
     </div>
+  </div>
+
+  <div id="chart-operacoes-section" style="display:none;margin-bottom:1rem">
+    <div class="card">
+      <div class="ch"><span class="ct">Faturamento por operação</span><span class="pill pb" style="font-size:10px" id="chart-op-periodo">—</span></div>
+      <div style="position:relative;height:240px"><canvas id="chart-operacoes" role="img" aria-label="Faturamento por operação">Faturamento por operação.</canvas></div>
+    </div>
+  </div>
+
+  <div id="chart-operacoes-wrap" style="display:none" class="card">
+    <div class="ch"><span class="ct">Faturamento por operação</span><span class="pill pb" id="chart-op-periodo">—</span></div>
+    <div style="position:relative;height:220px"><canvas id="chart-operacoes" role="img" aria-label="Faturamento por operação">Faturamento por operação.</canvas></div>
   </div>
 
   <div id="proj-breakdown-section" style="display:none">
@@ -1500,6 +1512,7 @@ function calcular(){
   }).join(''):'<tr><td colspan="4" class="empty">Sem lançamentos</td></tr>';
   if(casaView==='grafico')renderCasasChart(m.porCasa);
   renderChartInv(mI);
+  renderChartOperacoes();
   renderBreakdown();
   renderResumoOperacoes();
 }
@@ -1626,6 +1639,147 @@ function renderBreakdown(){
       </div>
     </div>`;
   }).join('');
+}
+
+let opChart=null;
+function renderChartOperacoes(){
+  const wrap=document.getElementById('chart-operacoes-wrap');
+  const vis=getVisValue();
+  const isAdmin=currentUserData?.role==='admin';
+  // show only when admin and vis is empty (Todos)
+  if(!isAdmin||vis){wrap.style.display='none';if(opChart){opChart.destroy();opChart=null;}return;}
+  wrap.style.display='block';
+  const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
+  if(!ops.length){wrap.style.display='none';return;}
+
+  const labels=ops;
+  const receitas=ops.map(op=>{
+    const {mF,mH}=getFilteredData('op:'+op);
+    const recCPA=mF.reduce((s,f)=>s+f.receita,0);
+    const recHot=(mH||[]).reduce((s,h)=>s+h.valorBRL,0);
+    return currency==='USD'?(recCPA+recHot)/dolar:recCPA+recHot;
+  });
+  const ftdsOp=ops.map(op=>{
+    const {mF}=getFilteredData('op:'+op);
+    return mF.reduce((s,f)=>s+f.qtd,0);
+  });
+
+  const di=document.getElementById('dt-i').value;
+  const df=document.getElementById('dt-f').value;
+  document.getElementById('chart-op-periodo').textContent=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
+
+  if(opChart)opChart.destroy();
+  opChart=new Chart(document.getElementById('chart-operacoes'),{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:currency==='USD'?'Receita (USD)':'Receita (R$)',
+        data:receitas,
+        backgroundColor:['#185FA5','#0f9f6e','#d97706','#7c3aed','#dc2626','#0891b2','#65a30d','#c026d3'],
+        borderRadius:6,
+        barPercentage:0.6
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:ctx=>{
+              const val=currency==='USD'?'$ '+ctx.raw.toFixed(2):'R$ '+ctx.raw.toLocaleString('pt-BR',{minimumFractionDigits:2});
+              const ftd=ftdsOp[ctx.dataIndex];
+              return[val,`FTDs: ${ftd}`];
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{font:{size:11},color:'var(--text4)'},grid:{display:false},border:{color:'var(--border)'}},
+        y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v.toFixed(0):'R$'+v.toFixed(0),color:'var(--text4)'},beginAtZero:true,grid:{color:'var(--border)'},border:{color:'var(--border)'}}
+      }
+    }
+  });
+}
+
+function renderChartOperacoes(){
+  const sec=document.getElementById('chart-operacoes-section');
+  const vis=getVisValue();
+  const isAdmin=currentUserData?.role==='admin';
+  if(!isAdmin||vis){sec.style.display='none';if(opChart){opChart.destroy();opChart=null;}return;}
+  const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
+  if(!ops.length){sec.style.display='none';return;}
+  sec.style.display='block';
+
+  const di=document.getElementById('dt-i').value;
+  const df=document.getElementById('dt-f').value;
+  const badge=document.getElementById('chart-op-periodo');
+  if(badge)badge.textContent=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
+
+  const labels=ops;
+  const receitaVals=[];
+  const ftdVals=[];
+  const lucroVals=[];
+
+  ops.forEach(op=>{
+    const {mL,mI,mF,mH,tDeps}=getFilteredData('op:'+op);
+    const m=calcMetrics(mL,mI,mF,tDeps,mH);
+    receitaVals.push(currency==='USD'?parseFloat((m.rec/dolar).toFixed(2)):parseFloat(m.rec.toFixed(2)));
+    ftdVals.push(m.tF);
+    lucroVals.push(currency==='USD'?parseFloat((m.lucro/dolar).toFixed(2)):parseFloat(m.lucro.toFixed(2)));
+  });
+
+  if(opChart)opChart.destroy();
+  const ctx=document.getElementById('chart-operacoes');
+  opChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'Receita',
+          data:receitaVals,
+          backgroundColor:'#185FA5',
+          borderRadius:6,
+          barPercentage:0.5,
+          order:1
+        },
+        {
+          label:'Lucro',
+          data:lucroVals,
+          backgroundColor:lucroVals.map(v=>v>=0?'#16a34a':'#dc2626'),
+          borderRadius:6,
+          barPercentage:0.5,
+          order:2
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          display:true,
+          labels:{color:'var(--text3)',font:{size:11}}
+        },
+        tooltip:{
+          callbacks:{
+            afterBody:(items)=>{
+              const idx=items[0]?.dataIndex;
+              if(idx===undefined)return'';
+              return'FTDs: '+ftdVals[idx].toLocaleString('pt-BR');
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{font:{size:11},color:'var(--text3)'},grid:{display:false},border:{color:'var(--border)'}},
+        y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v.toFixed(0):'R$'+v.toFixed(0),color:'var(--text4)'},beginAtZero:true,grid:{color:'var(--border)'},border:{color:'var(--border)'}}
+      }
+    }
+  });
 }
 
 function renderChartInv(data){
