@@ -305,37 +305,42 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
       <div class="ch"><span class="ct">Casas cadastradas</span><span id="casas-count" class="pill pb">0</span></div>
       <div id="lista-casas"><div class="empty">Nenhuma casa cadastrada</div></div>
       <div style="margin-top:1rem" id="wrap-btn-nova-casa">
-        <button class="btn bp" onclick="abrirFormNovaCasa()" id="btn-nova-casa">+ Adicionar nova casa</button>
+        <button class="btn bp" onclick="toggleForm('form-nova-casa',this)" id="btn-nova-casa">+ Cadastrar nova casa</button>
       </div>
       <div id="form-nova-casa" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
-        <!-- ADMIN FORM -->
-        <div id="form-nova-casa-admin">
-          <div class="fg">
-            <div><label>Nome</label><input type="text" id="c-nome" placeholder="Ex: Melbet"/></div>
-            <div><label>CPA padrão (USD por FTD)</label><input type="number" id="c-cpa" placeholder="Ex: 25"/></div>
-            <div><label>Geo / País</label><input type="text" id="c-geo" placeholder="Ex: Mexico"/></div>
-            <div id="c-op-wrap"><label>Operação</label>
-              <select id="c-op"><option value="">Selecione...</option></select>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn bp" onclick="addCasaAndClose()">Salvar casa</button>
-            <button class="btn" onclick="toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));clearCasa()">Cancelar</button>
-          </div>
+        <div class="fg">
+          <div><label>Nome da casa</label><input type="text" id="c-nome" placeholder="Ex: Melbet"/></div>
         </div>
-        <!-- GESTOR FORM -->
-        <div id="form-nova-casa-gestor" style="display:none">
-          <div class="hint" style="margin-bottom:12px;font-size:12px;color:var(--text4)">Escolha uma casa cadastrada pelo admin e defina o CPA para sua operação</div>
-          <div class="fg">
-            <div><label>Casa de apostas</label>
-              <select id="gc-nome-sel"><option value="">Selecione a casa...</option></select>
-            </div>
-            <div><label>CPA padrão (USD por FTD)</label><input type="number" id="gc-cpa" placeholder="Ex: 25"/></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn bp" onclick="addCasaAndClose()">Salvar</button>
+          <button class="btn" onclick="toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));clearCasa()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cfg-section">
+    <div class="cfg-section-title">Acordos</div>
+    <div class="card">
+      <div class="ch"><span class="ct">Acordos cadastrados</span><span id="acordos-count" class="pill pb">0</span></div>
+      <div id="lista-acordos"><div class="empty">Nenhum acordo cadastrado</div></div>
+      <div style="margin-top:1rem">
+        <button class="btn bp" onclick="toggleForm('form-novo-acordo',this)" id="btn-novo-acordo">+ Cadastrar novo acordo</button>
+      </div>
+      <div id="form-novo-acordo" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+        <div class="fg">
+          <div><label>Casa</label>
+            <select id="a-casa"><option value="">Selecione a casa...</option></select>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn bp" onclick="addCasaGestor()">Adicionar</button>
-            <button class="btn" onclick="toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'))">Cancelar</button>
+          <div id="a-op-wrap"><label>Operação</label>
+            <select id="a-op"><option value="">Selecione...</option></select>
           </div>
+          <div><label>Geo / País</label><input type="text" id="a-geo" placeholder="Ex: Mexico"/></div>
+          <div><label>CPA padrão (USD por FTD)</label><input type="number" id="a-cpa" placeholder="Ex: 25"/></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn bp" onclick="addAcordoAndClose()">Salvar acordo</button>
+          <button class="btn" onclick="toggleForm('form-novo-acordo',document.getElementById('btn-novo-acordo'))">Cancelar</button>
         </div>
       </div>
     </div>
@@ -525,6 +530,33 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
   </div>
 </div>
 
+<!-- MODAL EDITAR ACORDO -->
+<div class="modal-overlay" id="modal-acordo" style="display:none" onclick="if(event.target===this)closeModal('modal-acordo')">
+  <div class="modal">
+    <div class="modal-title">Editar acordo</div>
+    <div style="margin-bottom:1rem;padding:.75rem;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:500;color:var(--text)" id="ea-titulo">—</div>
+    </div>
+    <div class="fg">
+      <div><label>Geo / País</label><input type="text" id="ea-geo"/></div>
+      <div><label>CPA padrão (USD)</label><input type="number" id="ea-cpa"/></div>
+    </div>
+    <div class="toggle-row">
+      <label class="toggle"><input type="checkbox" id="ea-periodos-toggle" onchange="togglePeriodosAcordo()"/><span class="toggle-slider"></span></label>
+      <span style="font-size:13px;color:var(--text2)">Ativar acordos por período</span>
+    </div>
+    <div id="ea-periodos-section" style="display:none">
+      <div style="font-size:11px;color:var(--text4);margin-bottom:10px">O CPA da data do lançamento é usado automaticamente.</div>
+      <div id="ea-periodos-list"></div>
+      <button class="btn bs bgreen" onclick="addPeriodoAcordo()" style="margin-top:4px">+ Adicionar período</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1.25rem">
+      <button class="btn bp" onclick="salvarEditAcordo()">Salvar</button>
+      <button class="btn" onclick="closeModal('modal-acordo')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EDITAR CASA -->
 <div class="modal-overlay" id="modal-casa" style="display:none" onclick="if(event.target===this)closeModal('modal-casa')">
   <div class="modal">
@@ -600,7 +632,8 @@ const SUPA_KEY='sb_publishable_2j8U41YIhunRh1-TtCzJdA_7fDmAZ7z';
 const {createClient}=supabase;
 const sb=createClient(SUPA_URL,SUPA_KEY);
 
-let casas=[],projetos=[],ftds=[],leads=[],investData=[],hotmartData=[],logs=[];
+let casas=[],acordos=[],projetos=[],ftds=[],leads=[],investData=[],hotmartData=[],logs=[];
+let editAcordoId=null;
 let dolar=5.27,invChart=null,casaChart=null,casaView='lista',currency='BRL';
 let editCasaId=null,editProjId=null;
 let currentUser=null,currentUserData=null;
@@ -650,6 +683,7 @@ async function mostrarApp(){
 
   await carregarConfig();
   await carregarCasas();
+  await carregarAcordos();
   await carregarProjetos();
   await carregarFTDs();
   updateSelects();
@@ -720,6 +754,18 @@ async function salvarDolarDB(val){
 }
 
 // CASAS
+async function carregarAcordos(){
+  let query=sb.from('acordos').select('*').order('casa_nome');
+  if(currentUserData?.role==='gestor'){
+    const ops=getGestorOps();
+    if(ops.length===1)query=query.eq('operacao',ops[0]);
+    else if(ops.length>1)query=query.in('operacao',ops);
+  }
+  const {data}=await query;
+  if(data)acordos=data.map(a=>({...a,usePeriodos:a.use_periodos,periodos:a.periodos||[]}));
+  renderAcordos();
+}
+
 async function carregarCasas(){
   let query=sb.from('casas').select('*').order('nome');
   if(currentUserData?.role==='gestor'){
@@ -732,17 +778,149 @@ async function carregarCasas(){
   renderCasas();
 }
 
+async function addAcordo(){
+  const casaId=parseInt(document.getElementById('a-casa').value);
+  const cpa=parseFloat(document.getElementById('a-cpa').value)||0;
+  const geo=document.getElementById('a-geo').value.trim();
+  const aOpEl=document.getElementById('a-op');
+  const op=currentUserData?.role==='gestor'?getGestorOps()[0]:(aOpEl?.value||'');
+  const casa=casas.find(c=>c.id===casaId);
+  if(!casaId||!op){alert('Selecione a casa e a operação');return;}
+  const {data,error}=await sb.from('acordos').insert({
+    casa_id:casaId,casa_nome:casa.nome,operacao:op,geo,cpa,ativo:true,use_periodos:false,periodos:[]
+  }).select().single();
+  if(error){alert('Erro: '+error.message);return;}
+  acordos.push({...data,usePeriodos:false,periodos:[]});
+  renderAcordos();updateSelects();
+  log('Acordo: '+casa.nome+' · '+op);
+}
+
+async function addAcordoAndClose(){
+  await addAcordo();
+  const form=document.getElementById('form-novo-acordo');
+  if(form)form.style.display='none';
+  const btn=document.getElementById('btn-novo-acordo');
+  if(btn)btn.textContent='+ Cadastrar novo acordo';
+}
+
+async function removerAcordo(id){
+  const a=acordos.find(x=>x.id===id);if(!confirm('Remover acordo '+( a?a.casa_nome+' ('+a.operacao+')':'?')+'?'))return;
+  await sb.from('acordos').delete().eq('id',id);
+  acordos=acordos.filter(x=>x.id!==id);renderAcordos();updateSelects();
+}
+
+async function toggleAcordoAtivo(id){
+  const a=acordos.find(x=>x.id===id);if(!a)return;
+  const novoAtivo=a.ativo===false?true:false;
+  await sb.from('acordos').update({ativo:novoAtivo}).eq('id',id);
+  a.ativo=novoAtivo;renderAcordos();updateSelects();
+}
+
+function abrirEditAcordo(id){
+  const a=acordos.find(x=>x.id===id);if(!a)return;
+  editAcordoId=id;
+  document.getElementById('ea-titulo').textContent=a.casa_nome+' · '+a.operacao+(a.geo?' ('+a.geo+')':'');
+  document.getElementById('ea-geo').value=a.geo||'';
+  document.getElementById('ea-cpa').value=a.cpa||'';
+  document.getElementById('ea-periodos-toggle').checked=!!a.usePeriodos;
+  renderPeriodosAcordoForm(a.periodos||[]);
+  document.getElementById('ea-periodos-section').style.display=a.usePeriodos?'block':'none';
+  document.getElementById('modal-acordo').style.display='flex';
+}
+
+function togglePeriodosAcordo(){
+  const on=document.getElementById('ea-periodos-toggle').checked;
+  document.getElementById('ea-periodos-section').style.display=on?'block':'none';
+  if(on&&document.getElementById('ea-periodos-list').children.length===0)addPeriodoAcordo();
+}
+
+function renderPeriodosAcordoForm(periodos){
+  const el=document.getElementById('ea-periodos-list');el.innerHTML='';
+  periodos.forEach(p=>{
+    const div=document.createElement('div');div.className='periodo-row';
+    div.innerHTML=`<div><label>CPA (USD)</label><input type="number" class="per-cpa" value="${p.cpa||''}" placeholder="Ex: 25"/></div>
+      <div><label>De</label><input type="date" class="per-from" value="${p.from||''}"/></div>
+      <div><label>Até</label><input type="date" class="per-to" value="${p.to||''}"/></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn bs bd" onclick="this.closest('.periodo-row').remove()">×</button></div>`;
+    el.appendChild(div);
+  });
+}
+
+function addPeriodoAcordo(){
+  const el=document.getElementById('ea-periodos-list');
+  const div=document.createElement('div');div.className='periodo-row';
+  div.innerHTML=`<div><label>CPA (USD)</label><input type="number" class="per-cpa" placeholder="Ex: 22"/></div>
+    <div><label>De</label><input type="date" class="per-from"/></div>
+    <div><label>Até</label><input type="date" class="per-to"/></div>
+    <div style="display:flex;align-items:flex-end"><button class="btn bs bd" onclick="this.closest('.periodo-row').remove()">×</button></div>`;
+  el.appendChild(div);
+}
+
+async function salvarEditAcordo(){
+  if(!editAcordoId)return;
+  const usePeriodos=document.getElementById('ea-periodos-toggle').checked;
+  const periodos=[];
+  document.querySelectorAll('#ea-periodos-list .periodo-row').forEach(row=>{
+    const cpa=parseFloat(row.querySelector('.per-cpa').value)||0;
+    const from=row.querySelector('.per-from').value;
+    const to=row.querySelector('.per-to').value;
+    if(cpa&&from)periodos.push({cpa,from,to});
+  });
+  const updates={
+    geo:document.getElementById('ea-geo').value.trim(),
+    cpa:parseFloat(document.getElementById('ea-cpa').value)||0,
+    use_periodos:usePeriodos,periodos
+  };
+  await sb.from('acordos').update(updates).eq('id',editAcordoId);
+  const idx=acordos.findIndex(a=>a.id===editAcordoId);
+  if(idx>=0)acordos[idx]={...acordos[idx],...updates,usePeriodos,periodos};
+  renderAcordos();updateSelects();closeModal('modal-acordo');
+  log('Acordo editado');
+}
+
+function renderAcordos(){
+  document.getElementById('acordos-count').textContent=acordos.length;
+  const el=document.getElementById('lista-acordos');
+  if(!acordos.length){el.innerHTML='<div class="empty">Nenhum acordo cadastrado</div>';return;}
+  const isAdmin=currentUserData?.role==='admin';
+  // group by operacao for admin
+  if(isAdmin){
+    const porOp={};
+    acordos.forEach(a=>{const op=a.operacao||'Sem operação';if(!porOp[op])porOp[op]=[];porOp[op].push(a);});
+    el.innerHTML=Object.entries(porOp).map(([op,as])=>`
+      <div style="margin-bottom:1.25rem">
+        <div style="font-size:11px;font-weight:500;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Operação: ${op}</div>
+        ${as.map(a=>acordoCard(a)).join('')}
+      </div>`).join('');
+  } else {
+    el.innerHTML=acordos.map(a=>acordoCard(a)).join('');
+  }
+}
+
+function acordoCard(a){
+  const cpaInfo=a.usePeriodos&&a.periodos?.length
+    ?a.periodos.map(p=>`$${p.cpa} (${p.from}${p.to?' → '+p.to:''})`).join(' · ')
+    :'$'+a.cpa+'/FTD = R$'+(a.cpa*dolar).toFixed(2);
+  return`<div style="background:var(--bg4);border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid var(--border);opacity:${a.ativo===false?0.45:1}">
+    <div>
+      <div style="font-size:14px;font-weight:500;color:var(--text)">${a.casa_nome}${a.geo?` <span class="pill pa" style="font-size:10px">${a.geo}</span>`:''}${a.ativo===false?' <span class="pill p0" style="font-size:10px">oculto</span>':''}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">${cpaInfo}${a.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}</div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn bs" onclick="toggleAcordoAtivo(${a.id})" title="${a.ativo===false?'Ativar':'Ocultar'}" style="padding:5px 10px">&#9728;</button>
+      <button class="btn bs" onclick="abrirEditAcordo(${a.id})">Editar</button>
+      <button class="btn bs bd" onclick="removerAcordo(${a.id})">Remover</button>
+    </div>
+  </div>`;
+}
+
 async function addCasa(){
   const nome=document.getElementById('c-nome').value.trim();
   if(!nome){alert('Informe o nome');return;}
-  const opEl=document.getElementById('c-op');
-  const opVal=opEl?opEl.value:'';
-  // gestor: usa sua própria operação
-  const opFinal=currentUserData?.role==='gestor'?currentUserData.operacao:opVal;
-  const {data,error}=await sb.from('casas').insert({nome,cpa:parseFloat(document.getElementById('c-cpa').value)||0,geo:document.getElementById('c-geo').value.trim(),ativo:true,use_periodos:false,periodos:[],operacao:opFinal}).select().single();
+  const {data,error}=await sb.from('casas').insert({nome,ativo:true}).select().single();
   if(error){alert('Erro: '+error.message);return;}
-  casas.push({...data,usePeriodos:false,periodos:[]});
-  renderCasas();updateSelects();clearCasa();log('Casa: '+nome);
+  casas.push({...data});
+  renderCasas();clearCasa();log('Casa cadastrada: '+nome);
 }
 
 async function removerCasa(id){
@@ -839,9 +1017,14 @@ async function salvarEditCasa(){
 
 function renderCasas(){
   document.getElementById('casas-count').textContent=casas.length;
-  const isAdmin=currentUserData?.role==='admin';
   const el=document.getElementById('lista-casas');
-  if(!casas.length){el.innerHTML='<div class="empty">Nenhuma casa</div>';return;}
+  if(!casas.length){el.innerHTML='<div class="empty">Nenhuma casa cadastrada</div>';return;}
+  el.innerHTML=casas.map(c=>`<div style="background:var(--bg4);border-radius:8px;padding:.75rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;border:1px solid var(--border)">
+    <span style="font-size:13px;font-weight:500;color:var(--text)">${c.nome}</span>
+    <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
+  </div>`).join('');
+  // dummy to skip old render
+  if(false){
   function casaCard(c){
     return`<div style="background:var(--bg4);border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid var(--border);opacity:${c.ativo===false?0.45:1}">
       <div>
@@ -1022,18 +1205,18 @@ async function salvarFTD(){
   const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
   if(!projId||!data||!casaId||!qtd){alert('Preencha todos os campos');return;}
   const proj=projetos.find(p=>p.id===projId);
-  const casa=casas.find(c=>c.id===casaId);
-  const cpa=getCPAForDate(casa,data);
+  // casaId is actually an acordo id now
+  const acordo=acordos.find(a=>a.id===casaId);
+  const cpa=getCPAForDate(acordo,data);
   const receitaUSD=cpa*qtd;
   const receitaBRL=receitaUSD*dolar;
 
   const btn=document.getElementById('btn-salvar-ftd');
   btn.textContent='Salvando...';btn.disabled=true;
 
-  // upsert (substitui se já existe mesmo proj+data+casa)
   const {error}=await sb.from('ftds').upsert({
     proj_id:projId,proj_nome:proj?proj.nome:'—',op_nome:proj?proj.op:'—',
-    data,casa_id:casaId,casa_nome:casa?casa.nome:'—',casa_geo:casa?casa.geo:'',
+    data,casa_id:casaId,casa_nome:acordo?acordo.casa_nome:'—',casa_geo:acordo?acordo.geo:'',
     qtd,cpa,receita_usd:receitaUSD,receita_brl:receitaBRL,dolar_cotacao:dolar
   },{onConflict:'proj_id,data,casa_id'});
 
@@ -1469,7 +1652,7 @@ async function salvarEditFTD(){
   const st=document.getElementById('edit-ftd-status');
   if(!qtd){st.textContent='Informe a quantidade';st.style.color='#f87171';return;}
   const f=ftds.find(x=>x.id===id);if(!f)return;
-  const casa=casas.find(c=>c.id===f.casaId);
+  const casa=acordos.find(a=>a.id===f.casaId)||casas.find(c=>c.id===f.casaId);
   const cpa=getCPAForDate(casa,f.data);
   const receitaUSD=cpa*qtd;
   const receitaBRL=receitaUSD*dolar;
@@ -1488,9 +1671,9 @@ function filtrarProjetosPorOp(){
   const op=document.getElementById('ftd-op').value;
   const projFiltrados=op?projetos.filter(p=>p.op===op):projetos;
   document.getElementById('ftd-proj').innerHTML='<option value="">Selecione...</option>'+projFiltrados.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
-  // filter casas by operacao
-  const casasFiltradas=op?casas.filter(c=>c.ativo!==false&&(c.operacao===op||!c.operacao)):casas.filter(c=>c.ativo!==false);
-  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casasFiltradas.map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
+  // filter acordos by operacao
+  const acordosFiltrados=op?acordos.filter(a=>a.ativo!==false&&a.operacao===op):acordos.filter(a=>a.ativo!==false);
+  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+acordosFiltrados.map(a=>`<option value="${a.id}">${a.casa_nome}${a.geo?' ('+a.geo+')':''}</option>`).join('');
   document.getElementById('p-cpa').textContent='—';
   document.getElementById('p-usd').textContent='—';
 }
@@ -1498,7 +1681,7 @@ function calcPrev(){
   const casaId=parseInt(document.getElementById('ftd-casa').value);
   const qtd=parseInt(document.getElementById('ftd-qtd').value)||0;
   const data=document.getElementById('ftd-data').value;
-  const casa=casas.find(c=>c.id===casaId);
+  const casa=acordos.find(a=>a.id===casaId);
   if(!casa||!qtd||!data){document.getElementById('p-cpa').textContent='—';document.getElementById('p-usd').textContent='—';return;}
   const cpa=getCPAForDate(casa,data);
   document.getElementById('p-cpa').textContent=fmtUSD(cpa)+(casa.usePeriodos?' (período)':' (padrão)');
@@ -1773,9 +1956,10 @@ function updateSelects(){
   const opsFil=[...new Set(ftds.map(f=>f.opNome).filter(Boolean))];
   const histOpEl=document.getElementById('hist-op-fil');
   if(histOpEl)histOpEl.innerHTML='<option value="">Todas as operações</option>'+opsFil.map(o=>`<option value="${o}">${o}</option>`).join('');
-  // ftd-casa: gestor vê só casas da sua operação (já filtrado no carregarCasas)
-  // admin vê todas
-  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+casas.filter(c=>c.ativo!==false).map(c=>`<option value="${c.id}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
+  // ftd-casa: usa acordos filtrados por operação selecionada
+  const opFtd=document.getElementById('ftd-op')?.value||'';
+  const acordosFtd=opFtd?acordos.filter(a=>a.ativo!==false&&a.operacao===opFtd):acordos.filter(a=>a.ativo!==false);
+  document.getElementById('ftd-casa').innerHTML='<option value="">Selecione...</option>'+acordosFtd.map(a=>`<option value="${a.id}">${a.casa_nome}${a.geo?' ('+a.geo+')':''}</option>`).join('');
   // c-op e eg-op: popula com operações disponíveis
   const opsDisp=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
   const cOpEl=document.getElementById('c-op');
@@ -1784,6 +1968,14 @@ function updateSelects(){
   if(egOpEl)egOpEl.innerHTML='<option value="">Selecione...</option>'+opsDisp.map(o=>`<option value="${o}">${o}</option>`).join('');
   const gOpEl2=document.getElementById('g-op');
   if(gOpEl2)gOpEl2.innerHTML='<option value="">Selecione...</option>'+opsDisp.map(o=>`<option value="${o}">${o}</option>`).join('');
+  // a-casa: populate with all casas for acordo form
+  const aCasaEl=document.getElementById('a-casa');
+  if(aCasaEl)aCasaEl.innerHTML='<option value="">Selecione a casa...</option>'+casas.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  // a-op: populate with operations
+  const aOpEl=document.getElementById('a-op');
+  const aOpWrap=document.getElementById('a-op-wrap');
+  if(currentUserData?.role==='gestor'){if(aOpWrap)aOpWrap.style.display='none';}
+  else if(aOpEl)aOpEl.innerHTML='<option value="">Selecione...</option>'+opsDisp.map(o=>`<option value="${o}">${o}</option>`).join('');
 }
 
 function log(msg){
