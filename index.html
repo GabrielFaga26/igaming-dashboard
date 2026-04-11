@@ -1718,18 +1718,22 @@ function renderChartOperacoes(){
   const badge=document.getElementById('chart-op-periodo');
   if(badge)badge.textContent=di&&df?(di===df?di.split('-').reverse().join('/'):di.split('-').reverse().join('/')+' → '+df.split('-').reverse().join('/')):'Todo o período';
 
-  const labels=ops;
-  const receitaVals=[];
-  const ftdVals=[];
-  const lucroVals=[];
-
-  ops.forEach(op=>{
+  // build data per op then sort by receita desc
+  const opData=ops.map(op=>{
     const {mL,mI,mF,mH,tDeps}=getFilteredData('op:'+op);
     const m=calcMetrics(mL,mI,mF,tDeps,mH);
-    receitaVals.push(currency==='USD'?parseFloat((m.rec/dolar).toFixed(2)):parseFloat(m.rec.toFixed(2)));
-    ftdVals.push(m.tF);
-    lucroVals.push(currency==='USD'?parseFloat((m.lucro/dolar).toFixed(2)):parseFloat(m.lucro.toFixed(2)));
-  });
+    return{
+      op,
+      rec:currency==='USD'?parseFloat((m.rec/dolar).toFixed(2)):parseFloat(m.rec.toFixed(2)),
+      ftd:m.tF,
+      inv:currency==='USD'?parseFloat((m.inv/dolar).toFixed(2)):parseFloat(m.inv.toFixed(2))
+    };
+  }).sort((a,b)=>b.rec-a.rec);
+
+  const labels=opData.map(d=>d.op);
+  const receitaVals=opData.map(d=>d.rec);
+  const ftdVals=opData.map(d=>d.ftd);
+  const invVals=opData.map(d=>d.inv);
 
   if(opChart)opChart.destroy();
   const ctx=document.getElementById('chart-operacoes');
@@ -1737,45 +1741,37 @@ function renderChartOperacoes(){
     type:'bar',
     data:{
       labels,
-      datasets:[
-        {
-          label:'Receita',
-          data:receitaVals,
-          backgroundColor:'#185FA5',
-          borderRadius:6,
-          barPercentage:0.5,
-          order:1
-        },
-        {
-          label:'Lucro',
-          data:lucroVals,
-          backgroundColor:lucroVals.map(v=>v>=0?'#16a34a':'#dc2626'),
-          borderRadius:6,
-          barPercentage:0.5,
-          order:2
-        }
-      ]
+      datasets:[{
+        label:'Receita',
+        data:receitaVals,
+        backgroundColor:'#185FA5',
+        borderRadius:6,
+        barPercentage:0.55
+      }]
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
       plugins:{
-        legend:{
-          display:true,
-          labels:{color:'var(--text3)',font:{size:11}}
-        },
+        legend:{display:false},
         tooltip:{
           callbacks:{
-            afterBody:(items)=>{
-              const idx=items[0]?.dataIndex;
-              if(idx===undefined)return'';
-              return'FTDs: '+ftdVals[idx].toLocaleString('pt-BR');
+            label:(item)=>{
+              const prefix=currency==='USD'?'$ ':'R$ ';
+              return'Receita: '+prefix+item.raw.toLocaleString('pt-BR',{minimumFractionDigits:2});
+            },
+            afterLabel:(item)=>{
+              const idx=item.dataIndex;
+              return[
+                'FTDs: '+ftdVals[idx].toLocaleString('pt-BR'),
+                'Investimento: '+(currency==='USD'?'$ ':'R$ ')+invVals[idx].toLocaleString('pt-BR',{minimumFractionDigits:2})
+              ];
             }
           }
         }
       },
       scales:{
-        x:{ticks:{font:{size:11},color:'var(--text3)'},grid:{display:false},border:{color:'var(--border)'}},
+        x:{ticks:{font:{size:12},color:'var(--text2)'},grid:{display:false},border:{color:'var(--border)'}},
         y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v.toFixed(0):'R$'+v.toFixed(0),color:'var(--text4)'},beginAtZero:true,grid:{color:'var(--border)'},border:{color:'var(--border)'}}
       }
     }
