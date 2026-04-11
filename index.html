@@ -804,7 +804,10 @@ async function addAcordo(){
   const cpa=parseFloat(document.getElementById('a-cpa').value)||0;
   const geo=document.getElementById('a-geo').value.trim();
   const aOpEl=document.getElementById('a-op');
-  const op=currentUserData?.role==='gestor'?getGestorOps()[0]:(aOpEl?.value||'');
+  const gestorOpsArr=getGestorOps();
+  const op=currentUserData?.role==='gestor'
+    ?(gestorOpsArr.length>1?(aOpEl?.value||''):gestorOpsArr[0])
+    :(aOpEl?.value||'');
   const casa=casas.find(c=>c.id===casaId);
   if(!casaId||!op){alert('Selecione a casa e a operação');return;}
   const {data,error}=await sb.from('acordos').insert({
@@ -2166,8 +2169,19 @@ function updateSelects(){
   // a-op: populate with operations
   const aOpEl=document.getElementById('a-op');
   const aOpWrap=document.getElementById('a-op-wrap');
-  if(currentUserData?.role==='gestor'){if(aOpWrap)aOpWrap.style.display='none';}
-  else if(aOpEl)aOpEl.innerHTML='<option value="">Selecione...</option>'+opsDisp.map(o=>`<option value="${o}">${o}</option>`).join('');
+  if(currentUserData?.role==='gestor'){
+    const gestorOpsA=getGestorOps();
+    if(gestorOpsA.length<=1){
+      // single op gestor - hide selector
+      if(aOpWrap)aOpWrap.style.display='none';
+    } else {
+      // multi op gestor - show selector with their ops only
+      if(aOpWrap)aOpWrap.style.display='block';
+      if(aOpEl)aOpEl.innerHTML='<option value="">Selecione a operação...</option>'+gestorOpsA.map(o=>`<option value="${o}">${o}</option>`).join('');
+    }
+  } else if(aOpEl){
+    aOpEl.innerHTML='<option value="">Selecione...</option>'+opsDisp.map(o=>`<option value="${o}">${o}</option>`).join('');
+  }
 }
 
 function log(msg){
