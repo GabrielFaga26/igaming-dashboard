@@ -1023,38 +1023,6 @@ function renderCasas(){
     <span style="font-size:13px;font-weight:500;color:var(--text)">${c.nome}</span>
     <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
   </div>`).join('');
-  // dummy to skip old render
-  if(false){
-  function casaCard(c){
-    return`<div style="background:var(--bg4);border-radius:8px;padding:.875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid var(--border);opacity:${c.ativo===false?0.45:1}">
-      <div>
-        <div style="font-size:14px;font-weight:500;color:var(--text)">${c.nome}${c.geo?` <span class="pill pa" style="font-size:10px">${c.geo}</span>`:''}${c.ativo===false?' <span class="pill p0" style="font-size:10px">oculta</span>':''}</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:2px">${c.usePeriodos&&c.periodos&&c.periodos.length?c.periodos.map(p=>`$${p.cpa} (${p.from}${p.to?' → '+p.to:''})`).join(' · '):'$'+c.cpa+'/FTD = R$'+(c.cpa*dolar).toFixed(2)}${c.usePeriodos?'<span class="pill pb" style="font-size:10px;margin-left:4px">períodos</span>':''}</div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn bs" onclick="toggleCasaAtiva(${c.id})" title="${c.ativo===false?'Ativar':'Ocultar'}" style="padding:5px 10px">&#9728;</button>
-        <button class="btn bs" onclick="abrirEditCasa(${c.id})">Editar</button>
-        <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
-      </div>
-    </div>`;
-  }
-  if(isAdmin){
-    // Admin: agrupa por operação
-    const porOp={};
-    casas.forEach(c=>{
-      const op=c.operacao||'Sem operação';
-      if(!porOp[op])porOp[op]=[];
-      porOp[op].push(c);
-    });
-    el.innerHTML=Object.entries(porOp).map(([op,cs])=>`
-      <div style="margin-bottom:1.25rem">
-        <div style="font-size:11px;font-weight:500;color:var(--text5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Operação: ${op}</div>
-        ${cs.map(c=>casaCard(c)).join('')}
-      </div>`).join('');
-  } else {
-    // Gestor: lista simples
-    el.innerHTML=casas.map(c=>casaCard(c)).join('');
-  }
 }
 
 // PROJETOS
