@@ -294,7 +294,8 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div class="ch">
       <span class="ct">Histórico de dias</span>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-<select id="hist-op-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs()"><option value="">Todas as operações</option></select>
+<select id="hist-op-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs();atualizarHistCasaFil()"><option value="">Todas as operações</option></select>
+        <select id="hist-casa-fil" style="width:auto;font-size:12px;padding:5px 8px" onchange="renderFTDs()"><option value="">Todas as casas</option></select>
         <button class="btn bs bgreen" onclick="exportFTDsExcel()">Exportar Excel</button>
         <button class="btn bs bp" onclick="atualizarDia()">↻ Atualizar dados do dia</button>
       </div>
@@ -450,7 +451,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <div class="cfg-section">
+  <div class="cfg-section" id="cfg-hotmart-section">
     <div class="cfg-section-title">Hotmart — Planilha de Vendas</div>
     <div class="card">
       <div style="font-size:12px;color:var(--text4);margin-bottom:1rem">Col F = Valor USD · Col J = Data da venda · Col L = ID do Produto</div>
@@ -470,7 +471,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <div class="cfg-section">
+  <div class="cfg-section" id="cfg-backup-section">
     <div class="cfg-section-title">Backup</div>
     <div class="card">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -481,7 +482,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <div class="cfg-section">
+  <div class="cfg-section" id="cfg-log-section">
     <div class="cfg-section-title">Log</div>
     <div class="card"><div id="log-area" style="max-height:200px;overflow-y:auto"><div class="empty">Nenhuma atividade</div></div></div>
   </div>
@@ -692,9 +693,13 @@ async function mostrarApp(){
   // Gestor: mostra seletor mas apenas com seus projetos
   if(!isAdmin){
     document.getElementById('cfg-gestores-section').style.display='none';
-    // gestor não pode cadastrar casas, só acordos
+    // gestor não cadastra casas (só admin), mas vê a lista
     const wrapBtnCasa=document.getElementById('wrap-btn-nova-casa');
     if(wrapBtnCasa)wrapBtnCasa.style.display='none';
+    // hide admin-only sections
+    ['cfg-hotmart-section','cfg-backup-section','cfg-log-section'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
   } else {
     document.getElementById('cfg-gestores-section').style.display='block';
   }
@@ -785,13 +790,8 @@ async function carregarAcordos(){
 }
 
 async function carregarCasas(){
-  let query=sb.from('casas').select('*').order('nome');
-  if(currentUserData?.role==='gestor'){
-    const gestorOps=getGestorOps();
-    if(gestorOps.length===1)query=query.eq('operacao',gestorOps[0]);
-    else if(gestorOps.length>1)query=query.in('operacao',gestorOps);
-  }
-  const {data}=await query;
+  // casas are master list — all users see all casas (for accord creation)
+  const {data}=await sb.from('casas').select('*').order('nome');
   if(data)casas=data.map(c=>({...c,usePeriodos:c.use_periodos,periodos:c.periodos||[]}));
   renderCasas();
 }
@@ -1037,10 +1037,20 @@ function renderCasas(){
   document.getElementById('casas-count').textContent=casas.length;
   const el=document.getElementById('lista-casas');
   if(!casas.length){el.innerHTML='<div class="empty">Nenhuma casa cadastrada</div>';return;}
-  el.innerHTML=casas.map(c=>`<div style="background:var(--bg4);border-radius:8px;padding:.75rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;border:1px solid var(--border)">
-    <span style="font-size:13px;font-weight:500;color:var(--text)">${c.nome}</span>
-    <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
-  </div>`).join('');
+  const isAdmin=currentUserData?.role==='admin';
+  if(isAdmin){
+    // Admin: simple list with remove button
+    el.innerHTML=casas.map(c=>`<div style="background:var(--bg4);border-radius:8px;padding:.75rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;border:1px solid var(--border)">
+      <span style="font-size:13px;font-weight:500;color:var(--text)">${c.nome}</span>
+      <button class="btn bs bd" onclick="removerCasa(${c.id})">Remover</button>
+    </div>`).join('');
+  } else {
+    // Gestor: show all casas as read-only reference
+    el.innerHTML=casas.map(c=>`<div style="background:var(--bg4);border-radius:8px;padding:.75rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;border:1px solid var(--border)">
+      <span style="font-size:13px;font-weight:500;color:var(--text)">${c.nome}</span>
+      <span class="pill pb" style="font-size:10px">disponível</span>
+    </div>`).join('');
+  }
 }
 
 // PROJETOS
@@ -1164,6 +1174,16 @@ function renderProjetos(){
 }
 
 // FTDs
+function atualizarHistCasaFil(){
+  const opFil=document.getElementById('hist-op-fil').value;
+  const dados=opFil?ftds.filter(f=>f.opNome===opFil):ftds;
+  const casas=[...new Set(dados.map(f=>f.casaNome).filter(Boolean))].sort();
+  const el=document.getElementById('hist-casa-fil');
+  if(!el)return;
+  const cur=el.value;
+  el.innerHTML='<option value="">Todas as casas</option>'+casas.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(cur)el.value=cur;
+}
 function atualizarHistOpFil(){
   const opsFil=[...new Set(ftds.map(f=>f.opNome).filter(Boolean))];
   const el=document.getElementById('hist-op-fil');
@@ -1181,7 +1201,7 @@ async function carregarFTDs(){
   }
   const {data}=await query;
   if(data)ftds=data.map(f=>({...f,projId:f.proj_id,projNome:f.proj_nome,opNome:f.op_nome,casaId:f.casa_id,casaNome:f.casa_nome,casaGeo:f.casa_geo,receitaUSD:f.receita_usd,receita:f.receita_brl}));
-  atualizarHistOpFil();renderFTDs();
+  atualizarHistOpFil();atualizarHistCasaFil();renderFTDs();
 }
 
 async function salvarFTD(){
@@ -1793,7 +1813,9 @@ function renderChartInv(data){
 
 function renderFTDs(){
   const opFil=document.getElementById('hist-op-fil').value;
-  const dados=opFil?ftds.filter(f=>f.opNome===opFil):ftds;
+  const casaFil=document.getElementById('hist-casa-fil')?.value||'';
+  let dados=opFil?ftds.filter(f=>f.opNome===opFil):ftds;
+  if(casaFil)dados=dados.filter(f=>f.casaNome===casaFil);
   const el=document.getElementById('hist-dias');
   if(!dados.length){el.innerHTML='<div class="empty">Nenhum lançamento ainda</div>';return;}
   const porDia={};
@@ -1828,7 +1850,9 @@ function renderFTDs(){
 function exportFTDsExcel(){
   if(!ftds.length){alert('Nenhum lançamento');return;}
   const opFil=document.getElementById('hist-op-fil').value;
-  const dados=opFil?ftds.filter(f=>f.opNome===opFil):ftds;
+  const casaFil=document.getElementById('hist-casa-fil')?.value||'';
+  let dados=opFil?ftds.filter(f=>f.opNome===opFil):ftds;
+  if(casaFil)dados=dados.filter(f=>f.casaNome===casaFil);
   const rows=[['Data','Operação','Projeto','Casa','Geo','FTDs','CPA (USD)','Receita USD','Receita BRL'],...dados.map(f=>[String(f.data).split('-').reverse().join('/'),f.opNome||'',f.projNome,f.casaNome,f.casaGeo||'',f.qtd,f.cpa,(f.receitaUSD||0).toFixed(2),f.receita.toFixed(2)])];
   const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:12},{wch:14},{wch:18},{wch:14},{wch:10},{wch:8},{wch:10},{wch:14},{wch:14}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'FTDs');XLSX.writeFile(wb,'ftds-lancamentos.xlsx');log('Excel exportado');
