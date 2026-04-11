@@ -307,7 +307,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 <!-- CONFIGURAÇÕES -->
 <div id="sec-config" class="section">
 
-  <div class="cfg-section">
+  <div class="cfg-section" id="cfg-dolar-section">
     <div class="cfg-section-title">Cotação do dólar</div>
     <div class="card">
       <div class="fg" style="margin-bottom:0">
@@ -317,7 +317,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     </div>
   </div>
 
-  <div class="cfg-section">
+  <div class="cfg-section" id="cfg-casas-section">
     <div class="cfg-section-title">Casas de apostas</div>
     <div class="card">
       <div class="ch"><span class="ct">Casas cadastradas</span><span id="casas-count" class="pill pb">0</span></div>
@@ -419,6 +419,9 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
       <div id="lista-projetos"><div class="empty">Nenhum projeto cadastrado</div></div>
       <div style="margin-top:1rem">
         <button class="btn bp" onclick="toggleForm('form-novo-proj',this)" id="btn-novo-proj">+ Cadastrar novo projeto</button>
+      </div>
+      <div style="margin-top:1rem;padding:.875rem;background:var(--bg3);border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--text4)">
+        💡 Para alterar/adicionar uma conta de anúncio ou IDs de Produtos da Hotmart, clique em <strong style="color:var(--text2)">Editar</strong> no projeto desejado.
       </div>
     </div>
   </div>
@@ -697,7 +700,7 @@ async function mostrarApp(){
     const wrapBtnCasa=document.getElementById('wrap-btn-nova-casa');
     if(wrapBtnCasa)wrapBtnCasa.style.display='none';
     // hide admin-only sections
-    ['cfg-hotmart-section','cfg-backup-section','cfg-log-section'].forEach(id=>{
+    ['cfg-hotmart-section','cfg-backup-section','cfg-log-section','cfg-casas-section','cfg-dolar-section'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
   } else {
