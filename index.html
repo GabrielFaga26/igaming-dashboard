@@ -692,8 +692,9 @@ async function mostrarApp(){
   // Gestor: mostra seletor mas apenas com seus projetos
   if(!isAdmin){
     document.getElementById('cfg-gestores-section').style.display='none';
-    // gestor pode adicionar casa mas só de nomes cadastrados pelo admin
-    // botão permanece visível
+    // gestor não pode cadastrar casas, só acordos
+    const wrapBtnCasa=document.getElementById('wrap-btn-nova-casa');
+    if(wrapBtnCasa)wrapBtnCasa.style.display='none';
   } else {
     document.getElementById('cfg-gestores-section').style.display='block';
   }
@@ -2011,45 +2012,7 @@ async function debugColC(){
   const configTab=document.querySelectorAll('.tab')[2];
   if(configTab){aba(configTab,'config');}
 }
-function abrirFormNovaCasa(){
-  const isAdmin=currentUserData?.role==='admin';
-  if(isAdmin){
-    // admin: opens full form
-    toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));
-    document.getElementById('form-nova-casa-admin').style.display='block';
-    document.getElementById('form-nova-casa-gestor').style.display='none';
-  } else {
-    // gestor: opens picker from admin-created houses
-    toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));
-    document.getElementById('form-nova-casa-admin').style.display='none';
-    document.getElementById('form-nova-casa-gestor').style.display='block';
-    // populate dropdown with casas not yet in this operacao
-    const gestorOp=currentUserData?.operacao||'';
-    const casasDisponiveis=casas.filter(c=>!c.operacao||c.operacao!==gestorOp);
-    // also get all house names from admin (casas with no operacao = available templates)
-    // show all unique names not already in gestor's op
-    const nomesNaOp=new Set(casas.filter(c=>c.operacao===gestorOp).map(c=>c.nome));
-    // get distinct casa names from admin casas (operacao is null/empty = master list)
-    const todasCasas=casas.filter(c=>!c.operacao||c.operacao==='');
-    const sel=document.getElementById('gc-nome-sel');
-    sel.innerHTML='<option value="">Selecione a casa...</option>'+todasCasas.filter(c=>!nomesNaOp.has(c.nome)).map(c=>`<option value="${c.nome}" data-geo="${c.geo||''}">${c.nome}${c.geo?' ('+c.geo+')':''}</option>`).join('');
-  }
-}
 
-async function addCasaGestor(){
-  const sel=document.getElementById('gc-nome-sel');
-  const nome=sel.value;
-  const geo=sel.selectedOptions[0]?.dataset.geo||'';
-  const cpa=parseFloat(document.getElementById('gc-cpa').value)||0;
-  const gestorOp=currentUserData?.operacao?.split(',')[0]||'';
-  if(!nome){alert('Selecione uma casa');return;}
-  const {data,error}=await sb.from('casas').insert({nome,cpa,geo,ativo:true,use_periodos:false,periodos:[],operacao:gestorOp}).select().single();
-  if(error){alert('Erro: '+error.message);return;}
-  casas.push({...data,usePeriodos:false,periodos:[]});
-  renderCasas();updateSelects();
-  toggleForm('form-nova-casa',document.getElementById('btn-nova-casa'));
-  log('Casa adicionada: '+nome+' ('+gestorOp+')');
-}
 
 function toggleForm(formId,btn){
   const el=document.getElementById(formId);
