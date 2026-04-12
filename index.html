@@ -188,9 +188,11 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     </div>
     <div><label>De</label><input type="date" id="dt-i" style="width:145px"/></div>
     <div><label>Até</label><input type="date" id="dt-f" style="width:145px"/></div>
-    <div style="display:flex;gap:6px;align-self:flex-end">
+    <div style="display:flex;gap:6px;align-self:flex-end;flex-wrap:wrap">
       <button class="btn bs" onclick="setHoje()">Hoje</button>
       <button class="btn bs" onclick="setOntem()">Ontem</button>
+      <button class="btn bs" onclick="setMesAtual()">Mês atual</button>
+      <button class="btn bs" onclick="setMesAnterior()">Mês anterior</button>
     </div>
     <button class="btn bp" style="align-self:flex-end" onclick="calcular()">Calcular</button>
     <div style="align-self:flex-end">
@@ -1154,15 +1156,29 @@ function podeExcluirProjeto(){
   if(currentUserData?.role==='admin')return true;
   return(currentUserData?.nivel_acesso||'total')==='total';
 }
+// operações ocultas na visão geral
+let opOcultas=new Set(JSON.parse(localStorage.getItem('ig_op_ocultas')||'[]'));
+function toggleOpVisivel(op){
+  if(opOcultas.has(op))opOcultas.delete(op);
+  else opOcultas.add(op);
+  localStorage.setItem('ig_op_ocultas',JSON.stringify([...opOcultas]));
+  renderProjetos();updateSelects();calcular();
+}
 function renderProjetos(){
   document.getElementById('proj-count').textContent=projetos.length;
   const el=document.getElementById('lista-projetos');
   if(!projetos.length){el.innerHTML='<div class="empty">Nenhum projeto</div>';return;}
   const porOp={};
   projetos.forEach(p=>{if(!porOp[p.op])porOp[p.op]=[];porOp[p.op].push(p);});
-  el.innerHTML=Object.entries(porOp).map(([op,ps])=>`
-    <div style="margin-bottom:1rem">
-      <div style="font-size:11px;font-weight:500;color:var(--text5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Operação: ${op}</div>
+  el.innerHTML=Object.entries(porOp).map(([op,ps])=>{
+    const oculta=opOcultas.has(op);
+    return`<div style="margin-bottom:1rem;opacity:${oculta?0.5:1}">
+      <div style="font-size:11px;font-weight:500;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+        <span>Operação: ${op}</span>
+        <button class="btn bs" onclick="toggleOpVisivel('${op}')" style="padding:3px 10px;font-size:11px" title="${oculta?'Mostrar na Visão Geral':'Ocultar da Visão Geral'}">
+          ${oculta?'👁 Oculta':'👁 Visível'}
+        </button>
+      </div>
       ${ps.map(p=>`<div class="sbox">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
           <div><div style="font-size:13px;font-weight:500;color:var(--text)">${p.nome}</div></div>
@@ -1176,7 +1192,8 @@ function renderProjetos(){
           <div>Contas ads: ${p.contas&&p.contas.length?`<span style="color:#4ade80">${p.contas.length} conta(s)</span>`:'<span style="color:#f87171">Não configurado</span>'}</div>
         </div>
       </div>`).join('')}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // FTDs
@@ -1798,7 +1815,7 @@ function renderChartOperacoes(){
         }
       },
       scales:{
-        x:{ticks:{font:{size:12},color:'var(--text2)'},grid:{display:false},border:{color:'var(--border)'}},
+        x:{ticks:{font:{size:12},color:'#ffffff'},grid:{display:false},border:{color:'var(--border)'}},
         y:{ticks:{font:{size:10},callback:v=>currency==='USD'?'$'+v.toFixed(0):'R$'+v.toFixed(0),color:'var(--text4)'},beginAtZero:true,grid:{color:'var(--border)'},border:{color:'var(--border)'}}
       }
     }
@@ -2092,6 +2109,26 @@ function setOntem(){
   document.getElementById('dt-f').value=d;
   calcular();
 }
+function setMesAtual(){
+  const hoje=new Date(getBrasiliaDate(0));
+  const y=hoje.getFullYear(),m=hoje.getMonth();
+  const ini=new Date(y,m,1);
+  const fim=new Date(y,m+1,0);
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('dt-i').value=fmt(ini);
+  document.getElementById('dt-f').value=fmt(fim);
+  calcular();
+}
+function setMesAnterior(){
+  const hoje=new Date(getBrasiliaDate(0));
+  const y=hoje.getFullYear(),m=hoje.getMonth();
+  const ini=new Date(y,m-1,1);
+  const fim=new Date(y,m,0);
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('dt-i').value=fmt(ini);
+  document.getElementById('dt-f').value=fmt(fim);
+  calcular();
+}
 function toYMD(s){
   if(!s)return'';s=s.trim().split(' ')[0]; // remove time part if present
   if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.substring(0,10);
@@ -2118,7 +2155,8 @@ function updateSelects(){
   const vs=document.getElementById('vis-sel'),vv=vs.value;
   const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))];
   if(isAdmin){
-    vs.innerHTML='<option value="">Todos</option>'+ops.map(op=>`<optgroup label="Operação: ${op}"><option value="op:${op}">Operação: ${op} (consolidado)</option>${projetos.filter(p=>p.op===op).map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('')}</optgroup>`).join('');
+    const opsVisiveis=ops.filter(op=>!opOcultas.has(op));
+    vs.innerHTML='<option value="">Todos</option>'+opsVisiveis.map(op=>`<optgroup label="Operação: ${op}"><option value="op:${op}">Operação: ${op} (consolidado)</option>${projetos.filter(p=>p.op===op).map(p=>`<option value="proj:${p.id}">  └ ${p.nome}</option>`).join('')}</optgroup>`).join('');
   } else {
     const gestorOps=getGestorOps();
     const projGestor=projetos.filter(p=>gestorOps.includes(p.op));
