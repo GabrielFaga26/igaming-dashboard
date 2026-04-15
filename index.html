@@ -339,9 +339,12 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
         <option value="ativo-uso">Ativa (em uso)</option>
         <option value="ativo-val">Ativa (em validação)</option>
         <option value="ativo-res">Ativa (com restrição)</option>
-        <option value="sem-uso">Sem uso</option>
         <option value="desativada">Desativada</option>
       </select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);cursor:pointer;user-select:none">
+        <input type="checkbox" id="ca-fil-disponivel" onchange="caApplyFilters()" style="width:auto;accent-color:#4ade80"/>
+        Apenas disponíveis
+      </label>
       <select id="ca-fil-moeda" onchange="caApplyFilters()" style="width:auto;font-size:12px;padding:5px 10px">
         <option value="">Todas as moedas</option>
         <option value="BRL">Real (BRL)</option>
@@ -355,8 +358,8 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div id="ca-contas-content"></div>
   </div>
 
-  <!-- Botão flutuante Adicionar Conta -->
-  <div style="margin-top:1.5rem">
+  <!-- Botão Adicionar Conta — visível apenas para admin -->
+  <div style="margin-top:1.5rem" id="ca-btn-adicionar">
     <button class="btn bp" onclick="caOpenModal()">+ Adicionar Conta de Anúncio</button>
   </div>
 </div>
@@ -569,10 +572,23 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
         <div class="ca-status-opt" data-val="ativo-uso"   onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#0a1f11;color:#4ade80">Ativa (em uso)</div>
         <div class="ca-status-opt" data-val="ativo-val"   onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#0c1a2e;color:#60a5fa">Ativa (em validação)</div>
         <div class="ca-status-opt" data-val="ativo-res"   onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#1a0820;color:#f0abfc">Ativa (com restrição)</div>
-        <div class="ca-status-opt" data-val="sem-uso"     onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#1a1208;color:#fb923c">Sem uso</div>
         <div class="ca-status-opt" data-val="desativada"  onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#1a0808;color:#f87171">Desativada</div>
       </div>
       <input type="hidden" id="ca-status-val" value="ativo-uso"/>
+    </div>
+
+    <!-- Disponível (sem uso) toggle -->
+    <div style="margin-bottom:1rem;background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border)">
+      <label class="toggle-row" style="cursor:pointer;user-select:none;margin:0">
+        <label class="toggle" style="flex-shrink:0">
+          <input type="checkbox" id="ca-disponivel"/>
+          <span class="toggle-slider"></span>
+        </label>
+        <div>
+          <div style="font-size:13px;color:var(--text2)">Marcar como disponível</div>
+          <div style="font-size:11px;color:var(--text5);margin-top:1px">Indica que esta conta está livre para ser alocada</div>
+        </div>
+      </label>
     </div>
 
     <!-- Observação -->
@@ -631,7 +647,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     </div>
     <div id="ca-detail-body"></div>
     <div style="display:flex;gap:8px;margin-top:1.25rem">
-      <button class="btn bd" onclick="caConfirmDelete()">Excluir</button>
+      <button class="btn bd" onclick="caConfirmDelete()" id="ca-detail-btn-excluir">Excluir</button>
       <button class="btn" onclick="closeModal('modal-ca-detail')">Fechar</button>
       <button class="btn bp" onclick="caEditFromDetail()">Editar</button>
     </div>
@@ -2424,25 +2440,27 @@ let caFormOps = [];
 
 const CA_TODAY = () => new Date().toISOString().slice(0,10);
 
+// "sem-uso" foi removido como status — agora é flag `disponivel` (boolean)
 const caStatusLabel = {
   'ativo-uso':  'Ativa (em uso)',
   'ativo-val':  'Ativa (em validação)',
   'ativo-res':  'Ativa (com restrição)',
-  'sem-uso':    'Sem uso',
   'desativada': 'Desativada'
 };
 const caStatusColors = {
   'ativo-uso':  {bg:'#0a1f11', color:'#4ade80', border:'#14532d'},
   'ativo-val':  {bg:'#0c1a2e', color:'#60a5fa', border:'#185FA5'},
   'ativo-res':  {bg:'#1a0820', color:'#f0abfc', border:'#6b21a8'},
-  'sem-uso':    {bg:'#1a1208', color:'#fb923c', border:'#431407'},
   'desativada': {bg:'#1a0808', color:'#f87171', border:'#450a0a'}
 };
-const caStatusOrder = ['ativo-uso','ativo-val','ativo-res','sem-uso','desativada'];
+const caStatusOrder = ['ativo-uso','ativo-val','ativo-res','desativada'];
 
-function caBadgeStatus(s){
+function caBadgeStatus(a){
+  const s=a.status||'ativo-uso';
   const c=caStatusColors[s]||{bg:'var(--bg3)',color:'var(--text4)',border:'var(--border)'};
-  return `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;background:${c.bg};color:${c.color};border:1px solid ${c.border}">${caStatusLabel[s]||s}</span>`;
+  const statusBadge=`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;background:${c.bg};color:${c.color};border:1px solid ${c.border}">${caStatusLabel[s]||s}</span>`;
+  const dispBadge=a.disponivel?`<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#111a0a;color:#86efac;border:1px solid #166534;margin-left:4px">Disponível</span>`:'';
+  return statusBadge+dispBadge;
 }
 function caBadgeMoeda(m){
   return m==='USD'
@@ -2459,6 +2477,14 @@ function caDiasAtivos(a){
   return Math.max(0,Math.round((to-from)/(1000*60*60*24)));
 }
 
+// Filtra contas conforme role do usuário
+function caGetVisibleContas(){
+  const isAdmin=currentUserData?.role==='admin';
+  if(isAdmin)return contasAnuncio;
+  const myOps=getGestorOps();
+  return contasAnuncio.filter(a=>(a.ops||[]).some(o=>myOps.includes(o)));
+}
+
 async function carregarContasAnuncio(){
   const {data,error}=await sb.from('contas_anuncio').select('*').order('created_at',{ascending:false});
   if(error){console.error('carregarContasAnuncio:',error);return;}
@@ -2467,6 +2493,13 @@ async function carregarContasAnuncio(){
 }
 
 function caRenderAll(){
+  const isAdmin=currentUserData?.role==='admin';
+  // Botão adicionar: só admin
+  const btnAdd=document.getElementById('ca-btn-adicionar');
+  if(btnAdd)btnAdd.style.display=isAdmin?'block':'none';
+  // Botão excluir no detalhe: só admin
+  const btnExc=document.getElementById('ca-detail-btn-excluir');
+  if(btnExc)btnExc.style.display=isAdmin?'inline-block':'none';
   caRenderMetrics();
   caRenderVisao();
   caRenderContasList();
@@ -2476,19 +2509,22 @@ function caRenderAll(){
 function caRenderMetrics(){
   const el=document.getElementById('ca-metrics');
   if(!el)return;
-  const total=contasAnuncio.length;
+  const visible=caGetVisibleContas();
+  const total=visible.length;
+  const dispCount=visible.filter(a=>a.disponivel).length;
   const items=[
     {label:'Total',val:total,color:'var(--text2)'},
     ...caStatusOrder.map(s=>({
       label:caStatusLabel[s],
-      val:contasAnuncio.filter(a=>a.status===s).length,
+      val:visible.filter(a=>a.status===s).length,
       color:caStatusColors[s].color,
       bg:caStatusColors[s].bg,
       border:caStatusColors[s].border
-    }))
+    })),
+    {label:'Disponíveis',val:dispCount,color:'#86efac',bg:'#111a0a',border:'#166534'}
   ];
   el.innerHTML=items.map((item,i)=>`
-    <div class="hero-m" style="${i>0?`border-color:${item.border};background:${item.bg}`:''};text-align:center">
+    <div class="hero-m" style="${(i>0&&i<items.length)?`border-color:${item.border};background:${item.bg}`:''};text-align:center">
       <div class="hero-label">${item.label}</div>
       <div class="hero-val" style="color:${item.color}">${item.val}</div>
     </div>`).join('');
@@ -2503,31 +2539,37 @@ function caSubTab(tab){
 
 function caRenderVisao(){
   const q=(document.getElementById('ca-search-visao')?.value||'').trim().toLowerCase();
-  const list=q?contasAnuncio.filter(a=>
+  const visible=caGetVisibleContas();
+  const list=q?visible.filter(a=>
     a.num?.toLowerCase().includes(q)||
     (a.ops||[]).some(o=>o.toLowerCase().includes(q))||
     a.cartao?.includes(q)||
     a.titular?.toLowerCase().includes(q)
-  ):contasAnuncio;
+  ):visible;
   const el=document.getElementById('ca-visao-content');
   if(!el)return;
-  const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))].sort();
-  if(!ops.length){el.innerHTML='<div class="empty">Nenhuma operação cadastrada.</div>';return;}
+  // gestores: apenas suas ops; admin: todas
+  const isAdmin=currentUserData?.role==='admin';
+  const allOps=[...new Set(projetos.map(p=>p.op).filter(Boolean))].sort();
+  const ops=isAdmin?allOps:getGestorOps().filter(o=>allOps.includes(o));
+  if(!ops.length){el.innerHTML='<div class="empty">Nenhuma operação disponível.</div>';return;}
   let html='';
   ops.forEach(op=>{
     const contas=list.filter(a=>(a.ops||[]).includes(op));
     const des=contas.filter(a=>a.status==='desativada').length;
     const res=contas.filter(a=>a.status==='ativo-res').length;
+    const disp=contas.filter(a=>a.disponivel).length;
     html+=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);cursor:pointer" onclick="caToggleOp(this)">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);cursor:pointer;user-select:none" onclick="caToggleOp(this)">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;pointer-events:none">
           <span style="font-weight:500;font-size:14px;color:var(--text)">${op}</span>
           ${des>0?`<span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#1a0808;color:#f87171;border:1px solid #450a0a">${des} desativada${des>1?'s':''}</span>`:''}
           ${res>0?`<span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#1a0820;color:#f0abfc;border:1px solid #6b21a8">${res} com restrição</span>`:''}
+          ${disp>0?`<span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#111a0a;color:#86efac;border:1px solid #166534">${disp} disponível${disp>1?'s':''}</span>`:''}
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;pointer-events:none">
           <span style="font-size:12px;color:var(--text4)">${contas.length} conta${contas.length!==1?'s':''}</span>
-          <span style="font-size:10px;color:var(--text5)">&#9654;</span>
+          <span class="ca-chevron" style="font-size:10px;color:var(--text5);transition:transform .2s">&#9654;</span>
         </div>
       </div>
       <div class="ca-op-body" style="display:none">
@@ -2538,7 +2580,7 @@ function caRenderVisao(){
           </tr></thead>
           <tbody>${contas.map(c=>`<tr style="cursor:pointer" onclick="caOpenDetail(${c.id})">
             <td style="font-family:'SF Mono',monospace;font-size:12px">${c.num}</td>
-            <td>${caBadgeStatus(c.status)}</td>
+            <td>${caBadgeStatus(c)}</td>
             <td>${caBadgeMoeda(c.moeda)}</td>
             <td style="font-family:'SF Mono',monospace;font-size:12px">${c.cartao?'•• '+c.cartao:'—'}</td>
             <td style="font-size:12px">${c.titular||'—'}</td>
@@ -2553,23 +2595,26 @@ function caRenderVisao(){
 
 function caToggleOp(header){
   const body=header.nextElementSibling;
-  const arrow=header.querySelector('span:last-child');
+  const arrow=header.querySelector('.ca-chevron');
   const open=body.style.display==='none';
   body.style.display=open?'block':'none';
   if(arrow)arrow.style.transform=open?'rotate(90deg)':'rotate(0deg)';
-  if(arrow)arrow.style.transition='transform .2s';
 }
 
 function caUpdateOpFilter(){
   const sel=document.getElementById('ca-fil-op');
   if(!sel)return;
   const cur=sel.value;
-  const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))].sort();
+  const isAdmin=currentUserData?.role==='admin';
+  const ops=isAdmin
+    ?[...new Set(projetos.map(p=>p.op).filter(Boolean))].sort()
+    :getGestorOps();
   sel.innerHTML='<option value="">Todas as operações</option>'+ops.map(o=>`<option value="${o}">${o}</option>`).join('');
   if(cur)sel.value=cur;
-  // also populate op selector in modal
+  // populate op selector in modal (admin only sees this)
   const mSel=document.getElementById('ca-op-sel');
-  if(mSel)mSel.innerHTML=ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+  const allOps=[...new Set(projetos.map(p=>p.op).filter(Boolean))].sort();
+  if(mSel)mSel.innerHTML=allOps.map(o=>`<option value="${o}">${o}</option>`).join('');
 }
 
 function caGetFiltered(){
@@ -2577,11 +2622,14 @@ function caGetFiltered(){
   const fStatus=document.getElementById('ca-fil-status')?.value||'';
   const fMoeda=document.getElementById('ca-fil-moeda')?.value||'';
   const fOp=document.getElementById('ca-fil-op')?.value||'';
-  return contasAnuncio.filter(a=>{
+  const fDisp=document.getElementById('ca-fil-disponivel')?.checked||false;
+  const visible=caGetVisibleContas();
+  return visible.filter(a=>{
     if(q&&!(a.num?.toLowerCase().includes(q)||(a.ops||[]).some(o=>o.toLowerCase().includes(q))||a.cartao?.includes(q)||a.titular?.toLowerCase().includes(q)))return false;
     if(fStatus&&a.status!==fStatus)return false;
     if(fMoeda&&a.moeda!==fMoeda)return false;
     if(fOp&&!(a.ops||[]).includes(fOp))return false;
+    if(fDisp&&!a.disponivel)return false;
     return true;
   });
 }
@@ -2593,13 +2641,33 @@ function caRenderContasList(){
   if(!el)return;
   const list=caGetFiltered();
   let html='';
+  // Grupo "Disponíveis" primeiro se houver
+  const dispList=list.filter(a=>a.disponivel);
+  if(dispList.length){
+    html+=`<div style="background:var(--bg2);border:1px solid #166534;border-radius:10px;overflow:hidden;margin-bottom:12px">
+      <div style="padding:7px 14px;background:#111a0a;border-bottom:1px solid #166534;font-size:11px;font-weight:500;display:flex;align-items:center;gap:8px">
+        <span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#111a0a;color:#86efac;border:1px solid #166534">Disponíveis</span>
+        <span style="color:var(--text5)">${dispList.length} conta${dispList.length!==1?'s':''}</span>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Nº conta</th><th>Status</th><th>Operações</th><th>Moeda</th><th>Cartão</th><th>Dias ativos</th></tr></thead>
+        <tbody>${dispList.map(c=>`<tr style="cursor:pointer" onclick="caOpenDetail(${c.id})">
+          <td style="font-family:'SF Mono',monospace;font-size:12px">${c.num}</td>
+          <td>${caBadgeStatus(c)}</td>
+          <td><div style="display:flex;flex-wrap:wrap;gap:3px">${(c.ops||[]).map(o=>`<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;background:var(--bg3);color:var(--text4);border:1px solid var(--border)">${o}</span>`).join('')}</div></td>
+          <td>${caBadgeMoeda(c.moeda)}</td>
+          <td style="font-family:'SF Mono',monospace;font-size:12px">${c.cartao?'•••• '+c.cartao:'—'}</td>
+          <td style="font-size:12px;color:var(--text4)">${caDiasAtivos(c)} dias</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
   caStatusOrder.forEach(s=>{
     const contas=list.filter(a=>a.status===s);
     if(!contas.length)return;
-    const c=caStatusColors[s];
     html+=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
       <div style="padding:7px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:11px;font-weight:500;display:flex;align-items:center;gap:8px">
-        ${caBadgeStatus(s)}
+        ${caBadgeStatus({status:s})}
         <span style="color:var(--text5)">${contas.length} conta${contas.length!==1?'s':''}</span>
       </div>
       <div style="overflow-x:auto"><table>
@@ -2625,6 +2693,9 @@ function caOpenDetail(id){
   const a=contasAnuncio.find(x=>x.id===id);
   if(!a)return;
   caDetailId=id;
+  const isAdmin=currentUserData?.role==='admin';
+  const btnExc=document.getElementById('ca-detail-btn-excluir');
+  if(btnExc)btnExc.style.display=isAdmin?'inline-block':'none';
   document.getElementById('ca-detail-title').textContent='Conta '+a.num;
   document.getElementById('ca-detail-body').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
@@ -2633,7 +2704,7 @@ function caOpenDetail(id){
     </div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
       <span style="color:var(--text4)">Status</span>
-      <span>${caBadgeStatus(a.status)}</span>
+      <span>${caBadgeStatus(a)}</span>
     </div>
     ${a.obs?`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
       <div style="color:var(--text4);margin-bottom:6px">Observação</div>
@@ -2693,9 +2764,7 @@ async function caDeleteConfirmed(){
 }
 
 function caSelectStatus(el){
-  document.querySelectorAll('.ca-status-opt').forEach(x=>{
-    x.style.borderColor='transparent';
-  });
+  document.querySelectorAll('.ca-status-opt').forEach(x=>{x.style.borderColor='transparent';});
   el.style.borderColor=caStatusColors[el.dataset.val]?.color||'#fff';
   document.getElementById('ca-status-val').value=el.dataset.val;
   document.getElementById('ca-field-desativ').style.display=el.dataset.val==='desativada'?'block':'none';
@@ -2719,8 +2788,6 @@ function caOpenModal(id){
   caEditingId=id||null;
   document.getElementById('ca-modal-title').textContent=caEditingId?'Editar Conta de Anúncio':'Nova Conta de Anúncio';
   caUpdateOpFilter();
-
-  // Reset status visual
   document.querySelectorAll('.ca-status-opt').forEach(x=>x.style.borderColor='transparent');
 
   if(caEditingId){
@@ -2735,16 +2802,18 @@ function caOpenModal(id){
     document.getElementById('ca-desativ').value=a.desativ||CA_TODAY();
     document.getElementById('ca-status-val').value=a.status||'ativo-uso';
     document.getElementById('ca-field-desativ').style.display=a.status==='desativada'?'block':'none';
+    document.getElementById('ca-disponivel').checked=!!a.disponivel;
     const activeOpt=document.querySelector(`.ca-status-opt[data-val="${a.status}"]`);
     if(activeOpt)activeOpt.style.borderColor=caStatusColors[a.status]?.color||'#fff';
     caFormOps=[...(a.ops||[])];
   } else {
-    ['ca-num','ca-cartao','ca-titular','ca-obs'].forEach(id=>{document.getElementById(id).value='';});
+    ['ca-num','ca-cartao','ca-titular','ca-obs'].forEach(i=>{document.getElementById(i).value='';});
     document.getElementById('ca-moeda').value='BRL';
     document.getElementById('ca-atrib').value=CA_TODAY();
     document.getElementById('ca-desativ').value=CA_TODAY();
     document.getElementById('ca-status-val').value='ativo-uso';
     document.getElementById('ca-field-desativ').style.display='none';
+    document.getElementById('ca-disponivel').checked=false;
     const defaultOpt=document.querySelector('.ca-status-opt[data-val="ativo-uso"]');
     if(defaultOpt)defaultOpt.style.borderColor=caStatusColors['ativo-uso'].color;
     caFormOps=[];
@@ -2760,6 +2829,7 @@ function caCloseModal(){
 async function caSaveModal(){
   const num=document.getElementById('ca-num').value.trim();
   if(!num){alert('Informe o número da conta');return;}
+  const isAdmin=currentUserData?.role==='admin';
   const moeda=document.getElementById('ca-moeda').value;
   const cartao=document.getElementById('ca-cartao').value.trim();
   const titular=document.getElementById('ca-titular').value.trim();
@@ -2767,9 +2837,13 @@ async function caSaveModal(){
   const status=document.getElementById('ca-status-val').value||'ativo-uso';
   const atrib=document.getElementById('ca-atrib').value||CA_TODAY();
   const desativ=status==='desativada'?(document.getElementById('ca-desativ').value||CA_TODAY()):null;
-  const ops=caFormOps.length?[...caFormOps]:[];
+  const disponivel=document.getElementById('ca-disponivel').checked;
+  const ops=isAdmin?caFormOps.length?[...caFormOps]:[]:(caEditingId?contasAnuncio.find(x=>x.id===caEditingId)?.ops||[]:[]);
 
-  const payload={num,moeda,cartao:cartao||null,titular:titular||null,obs:obs||null,status,atrib,desativ,ops};
+  // Gestores só podem atualizar: status, obs, disponivel
+  const payload=isAdmin
+    ?{num,moeda,cartao:cartao||null,titular:titular||null,obs:obs||null,status,atrib,desativ,disponivel,ops}
+    :{obs:obs||null,status,desativ,disponivel};
 
   if(caEditingId){
     const {data,error}=await sb.from('contas_anuncio').update(payload).eq('id',caEditingId).select().single();
@@ -2778,6 +2852,7 @@ async function caSaveModal(){
     if(idx>=0)contasAnuncio[idx]={...contasAnuncio[idx],...data};
     log('Conta de anúncio editada: '+num);
   } else {
+    if(!isAdmin){alert('Sem permissão para criar contas.');return;}
     const {data,error}=await sb.from('contas_anuncio').insert(payload).select().single();
     if(error){alert('Erro ao salvar: '+error.message);return;}
     contasAnuncio.unshift(data);
