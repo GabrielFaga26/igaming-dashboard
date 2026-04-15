@@ -175,6 +175,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 <div class="tabs" id="main-tabs">
   <button class="tab active" onclick="aba(this,'overview')">Visão Geral</button>
   <button class="tab" onclick="aba(this,'ftds')">Lançar FTDs</button>
+  <button class="tab" onclick="aba(this,'contas-anuncio')">Contas de Anúncio</button>
   <button class="tab" onclick="aba(this,'config')">Configurações</button>
 </div>
 
@@ -303,6 +304,60 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
       </div>
     </div>
     <div id="hist-dias"><div class="empty">Nenhum lançamento ainda</div></div>
+  </div>
+</div>
+
+<!-- CONTAS DE ANÚNCIO -->
+<div id="sec-contas-anuncio" class="section">
+  <!-- Métricas rápidas -->
+  <div class="hero" id="ca-metrics" style="grid-template-columns:repeat(6,1fr);margin-bottom:1.25rem"></div>
+
+  <!-- Sub-tabs internas -->
+  <div style="display:flex;gap:4px;background:var(--bg3);border-radius:8px;padding:4px;margin-bottom:1.25rem;border:1px solid var(--border);width:fit-content">
+    <button class="tab active" id="catab-visao"  onclick="caSubTab('visao')" style="padding:5px 16px">Visão por Operação</button>
+    <button class="tab" id="catab-contas" onclick="caSubTab('contas')" style="padding:5px 16px">Lista de Contas</button>
+  </div>
+
+  <!-- VISÃO POR OPERAÇÃO -->
+  <div id="ca-view-visao">
+    <div style="position:relative;margin-bottom:1rem">
+      <input type="text" id="ca-search-visao" placeholder="Buscar por número, titular, cartão..." oninput="caRenderVisao()" style="padding-left:36px"/>
+      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text4);pointer-events:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div id="ca-visao-content"></div>
+  </div>
+
+  <!-- LISTA DE CONTAS (com filtros) -->
+  <div id="ca-view-contas" style="display:none">
+    <div style="position:relative;margin-bottom:1rem">
+      <input type="text" id="ca-search-contas" placeholder="Buscar por número, titular, cartão..." oninput="caApplyFilters()" style="padding-left:36px"/>
+      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text4);pointer-events:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;align-items:center">
+      <select id="ca-fil-status" onchange="caApplyFilters()" style="width:auto;font-size:12px;padding:5px 10px">
+        <option value="">Todos os status</option>
+        <option value="ativo-uso">Ativa (em uso)</option>
+        <option value="ativo-val">Ativa (em validação)</option>
+        <option value="ativo-res">Ativa (com restrição)</option>
+        <option value="sem-uso">Sem uso</option>
+        <option value="desativada">Desativada</option>
+      </select>
+      <select id="ca-fil-moeda" onchange="caApplyFilters()" style="width:auto;font-size:12px;padding:5px 10px">
+        <option value="">Todas as moedas</option>
+        <option value="BRL">Real (BRL)</option>
+        <option value="USD">Dólar (USD)</option>
+      </select>
+      <select id="ca-fil-op" onchange="caApplyFilters()" style="width:auto;font-size:12px;padding:5px 10px">
+        <option value="">Todas as operações</option>
+      </select>
+    </div>
+    <div id="ca-active-filters" style="margin-bottom:.75rem"></div>
+    <div id="ca-contas-content"></div>
+  </div>
+
+  <!-- Botão flutuante Adicionar Conta -->
+  <div style="margin-top:1.5rem">
+    <button class="btn bp" onclick="caOpenModal()">+ Adicionar Conta de Anúncio</button>
   </div>
 </div>
 
@@ -494,6 +549,105 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 </div>
 
 </div>
+</div>
+
+<!-- MODAL CONTA DE ANÚNCIO -->
+<div class="modal-overlay" id="modal-conta-anuncio" style="display:none" onclick="if(event.target===this)caCloseModal()">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title" id="ca-modal-title">Nova Conta de Anúncio</div>
+
+    <!-- Nº da conta -->
+    <div style="margin-bottom:1rem">
+      <label>Nº da conta</label>
+      <input type="text" id="ca-num" placeholder="ex: 1234567890"/>
+    </div>
+
+    <!-- Status -->
+    <div style="margin-bottom:1rem">
+      <label>Status</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px" id="ca-status-selector">
+        <div class="ca-status-opt" data-val="ativo-uso"   onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#0a1f11;color:#4ade80">Ativa (em uso)</div>
+        <div class="ca-status-opt" data-val="ativo-val"   onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#0c1a2e;color:#60a5fa">Ativa (em validação)</div>
+        <div class="ca-status-opt" data-val="ativo-res"   onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#1a0820;color:#f0abfc">Ativa (com restrição)</div>
+        <div class="ca-status-opt" data-val="sem-uso"     onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#1a1208;color:#fb923c">Sem uso</div>
+        <div class="ca-status-opt" data-val="desativada"  onclick="caSelectStatus(this)" style="padding:9px 10px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;text-align:center;background:#1a0808;color:#f87171">Desativada</div>
+      </div>
+      <input type="hidden" id="ca-status-val" value="ativo-uso"/>
+    </div>
+
+    <!-- Observação -->
+    <div style="margin-bottom:1rem">
+      <label>Observação <span style="color:var(--text5);font-weight:400">(opcional)</span></label>
+      <textarea id="ca-obs" rows="2" placeholder="ex: Conta com limite reduzido..."></textarea>
+    </div>
+
+    <!-- Operações vinculadas -->
+    <div style="margin-bottom:1rem">
+      <label>Operação(ões) vinculada(s)</label>
+      <div id="ca-ops-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;min-height:24px"></div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <select id="ca-op-sel" style="flex:1"></select>
+        <button class="btn bs" onclick="caAddOpToForm()">+ Adicionar</button>
+      </div>
+    </div>
+
+    <!-- Moeda -->
+    <div style="margin-bottom:1rem">
+      <label>Moeda</label>
+      <select id="ca-moeda">
+        <option value="BRL">Real (BRL)</option>
+        <option value="USD">Dólar (USD)</option>
+      </select>
+    </div>
+
+    <!-- Cartão -->
+    <div style="background:var(--bg3);border-radius:8px;padding:1rem;border:1px solid var(--border);margin-bottom:1rem">
+      <div style="font-size:11px;font-weight:500;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Cartão</div>
+      <div class="fg">
+        <div><label>Final do cartão</label><input type="text" id="ca-cartao" maxlength="4" placeholder="ex: 4321"/></div>
+        <div><label>Titular</label><input type="text" id="ca-titular" placeholder="ex: João Silva"/></div>
+      </div>
+    </div>
+
+    <!-- Datas -->
+    <div class="fg" style="margin-bottom:1rem">
+      <div><label>Data de atribuição</label><input type="date" id="ca-atrib"/></div>
+      <div id="ca-field-desativ" style="display:none"><label>Data de desativação</label><input type="date" id="ca-desativ"/></div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn bp" onclick="caSaveModal()">Salvar</button>
+      <button class="btn" onclick="caCloseModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE CONTA ANUNCIO -->
+<div class="modal-overlay" id="modal-ca-detail" style="display:none" onclick="if(event.target===this)closeModal('modal-ca-detail')">
+  <div class="modal" style="max-width:420px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="modal-title" style="margin-bottom:0" id="ca-detail-title"></div>
+      <button onclick="closeModal('modal-ca-detail')" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text4)">&times;</button>
+    </div>
+    <div id="ca-detail-body"></div>
+    <div style="display:flex;gap:8px;margin-top:1.25rem">
+      <button class="btn bd" onclick="caConfirmDelete()">Excluir</button>
+      <button class="btn" onclick="closeModal('modal-ca-detail')">Fechar</button>
+      <button class="btn bp" onclick="caEditFromDetail()">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE CONTA -->
+<div class="modal-overlay" id="modal-ca-confirm" style="display:none">
+  <div class="modal" style="max-width:340px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:8px">Excluir conta?</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:1.25rem">Esta ação não pode ser desfeita.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal('modal-ca-confirm')">Cancelar</button>
+      <button class="btn bd" style="flex:1" onclick="caDeleteConfirmed()">Excluir</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL EDITAR FTD -->
@@ -714,6 +868,7 @@ async function mostrarApp(){
   await carregarAcordos();
   await carregarProjetos();
   await carregarFTDs();
+  await carregarContasAnuncio();
   updateSelects();
 
   // Gestor: pré-seleciona a operação no lançamento de FTD
@@ -2024,6 +2179,7 @@ function aba(el,id){
   el.classList.add('active');
   document.getElementById('sec-'+id).classList.add('active');
   if(id==='config'&&currentUserData?.role==='admin')carregarGestores();
+  if(id==='contas-anuncio'){caUpdateOpFilter();caRenderAll();}
 }
 
 function onVisChange(){calcular();}
@@ -2256,6 +2412,380 @@ function importJSON(input){
 }
 
 carregarTema();init();
+
+// ============================================================
+// CONTAS DE ANÚNCIO — Supabase table: contas_anuncio
+// ============================================================
+let contasAnuncio = [];
+let caEditingId = null;
+let caDetailId  = null;
+let caDeleteTargetId = null;
+let caFormOps = [];
+
+const CA_TODAY = () => new Date().toISOString().slice(0,10);
+
+const caStatusLabel = {
+  'ativo-uso':  'Ativa (em uso)',
+  'ativo-val':  'Ativa (em validação)',
+  'ativo-res':  'Ativa (com restrição)',
+  'sem-uso':    'Sem uso',
+  'desativada': 'Desativada'
+};
+const caStatusColors = {
+  'ativo-uso':  {bg:'#0a1f11', color:'#4ade80', border:'#14532d'},
+  'ativo-val':  {bg:'#0c1a2e', color:'#60a5fa', border:'#185FA5'},
+  'ativo-res':  {bg:'#1a0820', color:'#f0abfc', border:'#6b21a8'},
+  'sem-uso':    {bg:'#1a1208', color:'#fb923c', border:'#431407'},
+  'desativada': {bg:'#1a0808', color:'#f87171', border:'#450a0a'}
+};
+const caStatusOrder = ['ativo-uso','ativo-val','ativo-res','sem-uso','desativada'];
+
+function caBadgeStatus(s){
+  const c=caStatusColors[s]||{bg:'var(--bg3)',color:'var(--text4)',border:'var(--border)'};
+  return `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;background:${c.bg};color:${c.color};border:1px solid ${c.border}">${caStatusLabel[s]||s}</span>`;
+}
+function caBadgeMoeda(m){
+  return m==='USD'
+    ? `<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#1a1040;color:#a78bfa;border:1px solid #4c1d95">USD</span>`
+    : `<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#0c1a2e;color:#60a5fa;border:1px solid #185FA5">BRL</span>`;
+}
+function caFmtDate(d){
+  if(!d)return '—';
+  const [y,mo,dd]=d.split('-');return `${dd}/${mo}/${y}`;
+}
+function caDiasAtivos(a){
+  const from=new Date(a.atrib);
+  const to=(a.status==='desativada'&&a.desativ)?new Date(a.desativ):new Date();
+  return Math.max(0,Math.round((to-from)/(1000*60*60*24)));
+}
+
+async function carregarContasAnuncio(){
+  const {data,error}=await sb.from('contas_anuncio').select('*').order('created_at',{ascending:false});
+  if(error){console.error('carregarContasAnuncio:',error);return;}
+  contasAnuncio=data||[];
+  caRenderAll();
+}
+
+function caRenderAll(){
+  caRenderMetrics();
+  caRenderVisao();
+  caRenderContasList();
+  caUpdateOpFilter();
+}
+
+function caRenderMetrics(){
+  const el=document.getElementById('ca-metrics');
+  if(!el)return;
+  const total=contasAnuncio.length;
+  const items=[
+    {label:'Total',val:total,color:'var(--text2)'},
+    ...caStatusOrder.map(s=>({
+      label:caStatusLabel[s],
+      val:contasAnuncio.filter(a=>a.status===s).length,
+      color:caStatusColors[s].color,
+      bg:caStatusColors[s].bg,
+      border:caStatusColors[s].border
+    }))
+  ];
+  el.innerHTML=items.map((item,i)=>`
+    <div class="hero-m" style="${i>0?`border-color:${item.border};background:${item.bg}`:''};text-align:center">
+      <div class="hero-label">${item.label}</div>
+      <div class="hero-val" style="color:${item.color}">${item.val}</div>
+    </div>`).join('');
+}
+
+function caSubTab(tab){
+  document.getElementById('catab-visao').classList.toggle('active',tab==='visao');
+  document.getElementById('catab-contas').classList.toggle('active',tab==='contas');
+  document.getElementById('ca-view-visao').style.display=tab==='visao'?'block':'none';
+  document.getElementById('ca-view-contas').style.display=tab==='contas'?'block':'none';
+}
+
+function caRenderVisao(){
+  const q=(document.getElementById('ca-search-visao')?.value||'').trim().toLowerCase();
+  const list=q?contasAnuncio.filter(a=>
+    a.num?.toLowerCase().includes(q)||
+    (a.ops||[]).some(o=>o.toLowerCase().includes(q))||
+    a.cartao?.includes(q)||
+    a.titular?.toLowerCase().includes(q)
+  ):contasAnuncio;
+  const el=document.getElementById('ca-visao-content');
+  if(!el)return;
+  const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))].sort();
+  if(!ops.length){el.innerHTML='<div class="empty">Nenhuma operação cadastrada.</div>';return;}
+  let html='';
+  ops.forEach(op=>{
+    const contas=list.filter(a=>(a.ops||[]).includes(op));
+    const des=contas.filter(a=>a.status==='desativada').length;
+    const res=contas.filter(a=>a.status==='ativo-res').length;
+    html+=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);cursor:pointer" onclick="caToggleOp(this)">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:500;font-size:14px;color:var(--text)">${op}</span>
+          ${des>0?`<span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#1a0808;color:#f87171;border:1px solid #450a0a">${des} desativada${des>1?'s':''}</span>`:''}
+          ${res>0?`<span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#1a0820;color:#f0abfc;border:1px solid #6b21a8">${res} com restrição</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;color:var(--text4)">${contas.length} conta${contas.length!==1?'s':''}</span>
+          <span style="font-size:10px;color:var(--text5)">&#9654;</span>
+        </div>
+      </div>
+      <div class="ca-op-body" style="display:none">
+        ${contas.length?`<div style="overflow-x:auto"><table>
+          <thead><tr>
+            <th>Nº conta</th><th>Status</th><th>Moeda</th>
+            <th>Cartão</th><th>Titular</th><th>Dias ativos</th>
+          </tr></thead>
+          <tbody>${contas.map(c=>`<tr style="cursor:pointer" onclick="caOpenDetail(${c.id})">
+            <td style="font-family:'SF Mono',monospace;font-size:12px">${c.num}</td>
+            <td>${caBadgeStatus(c.status)}</td>
+            <td>${caBadgeMoeda(c.moeda)}</td>
+            <td style="font-family:'SF Mono',monospace;font-size:12px">${c.cartao?'•• '+c.cartao:'—'}</td>
+            <td style="font-size:12px">${c.titular||'—'}</td>
+            <td style="font-size:12px;color:var(--text4)">${caDiasAtivos(c)} dias</td>
+          </tr>`).join('')}</tbody>
+        </table></div>`:`<div class="empty" style="padding:1rem">Nenhuma conta vinculada.</div>`}
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html||'<div class="empty">Nenhuma conta encontrada.</div>';
+}
+
+function caToggleOp(header){
+  const body=header.nextElementSibling;
+  const arrow=header.querySelector('span:last-child');
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(arrow)arrow.style.transform=open?'rotate(90deg)':'rotate(0deg)';
+  if(arrow)arrow.style.transition='transform .2s';
+}
+
+function caUpdateOpFilter(){
+  const sel=document.getElementById('ca-fil-op');
+  if(!sel)return;
+  const cur=sel.value;
+  const ops=[...new Set(projetos.map(p=>p.op).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">Todas as operações</option>'+ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+  if(cur)sel.value=cur;
+  // also populate op selector in modal
+  const mSel=document.getElementById('ca-op-sel');
+  if(mSel)mSel.innerHTML=ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+}
+
+function caGetFiltered(){
+  const q=(document.getElementById('ca-search-contas')?.value||'').trim().toLowerCase();
+  const fStatus=document.getElementById('ca-fil-status')?.value||'';
+  const fMoeda=document.getElementById('ca-fil-moeda')?.value||'';
+  const fOp=document.getElementById('ca-fil-op')?.value||'';
+  return contasAnuncio.filter(a=>{
+    if(q&&!(a.num?.toLowerCase().includes(q)||(a.ops||[]).some(o=>o.toLowerCase().includes(q))||a.cartao?.includes(q)||a.titular?.toLowerCase().includes(q)))return false;
+    if(fStatus&&a.status!==fStatus)return false;
+    if(fMoeda&&a.moeda!==fMoeda)return false;
+    if(fOp&&!(a.ops||[]).includes(fOp))return false;
+    return true;
+  });
+}
+
+function caApplyFilters(){caRenderContasList();}
+
+function caRenderContasList(){
+  const el=document.getElementById('ca-contas-content');
+  if(!el)return;
+  const list=caGetFiltered();
+  let html='';
+  caStatusOrder.forEach(s=>{
+    const contas=list.filter(a=>a.status===s);
+    if(!contas.length)return;
+    const c=caStatusColors[s];
+    html+=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
+      <div style="padding:7px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:11px;font-weight:500;display:flex;align-items:center;gap:8px">
+        ${caBadgeStatus(s)}
+        <span style="color:var(--text5)">${contas.length} conta${contas.length!==1?'s':''}</span>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr>
+          <th>Nº conta</th><th>Operações</th><th>Moeda</th>
+          <th>Cartão</th><th>Atribuição</th><th>Dias ativos</th>
+        </tr></thead>
+        <tbody>${contas.map(c=>`<tr style="cursor:pointer" onclick="caOpenDetail(${c.id})">
+          <td style="font-family:'SF Mono',monospace;font-size:12px">${c.num}</td>
+          <td><div style="display:flex;flex-wrap:wrap;gap:3px">${(c.ops||[]).map(o=>`<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;background:var(--bg3);color:var(--text4);border:1px solid var(--border)">${o}</span>`).join('')}</div></td>
+          <td>${caBadgeMoeda(c.moeda)}</td>
+          <td style="font-family:'SF Mono',monospace;font-size:12px">${c.cartao?'•••• '+c.cartao:'—'}</td>
+          <td style="font-size:12px;color:var(--text4)">${caFmtDate(c.atrib)}</td>
+          <td style="font-size:12px;color:var(--text4)">${caDiasAtivos(c)} dias</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  });
+  el.innerHTML=html||'<div class="empty">Nenhuma conta encontrada para os filtros selecionados.</div>';
+}
+
+function caOpenDetail(id){
+  const a=contasAnuncio.find(x=>x.id===id);
+  if(!a)return;
+  caDetailId=id;
+  document.getElementById('ca-detail-title').textContent='Conta '+a.num;
+  document.getElementById('ca-detail-body').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Nº da conta</span>
+      <span style="font-weight:500;font-family:'SF Mono',monospace;font-size:12px">${a.num}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Status</span>
+      <span>${caBadgeStatus(a.status)}</span>
+    </div>
+    ${a.obs?`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <div style="color:var(--text4);margin-bottom:6px">Observação</div>
+      <div style="background:var(--bg3);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--text3);line-height:1.5">${a.obs}</div>
+    </div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Operações</span>
+      <span style="font-weight:500;text-align:right">${(a.ops||[]).join(', ')||'—'}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Moeda</span>
+      <span>${caBadgeMoeda(a.moeda)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Final do cartão</span>
+      <span style="font-weight:500;font-family:'SF Mono',monospace;font-size:12px">${a.cartao?'•••• '+a.cartao:'—'}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Titular</span>
+      <span style="font-weight:500">${a.titular||'—'}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Data de atribuição</span>
+      <span style="font-weight:500">${caFmtDate(a.atrib)}</span>
+    </div>
+    ${a.status==='desativada'?`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Data de desativação</span>
+      <span style="font-weight:500">${caFmtDate(a.desativ)}</span>
+    </div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;font-size:13px;gap:16px">
+      <span style="color:var(--text4)">Dias ativos</span>
+      <span style="font-weight:500">${caDiasAtivos(a)} dias</span>
+    </div>`;
+  document.getElementById('modal-ca-detail').style.display='flex';
+}
+
+function caEditFromDetail(){
+  closeModal('modal-ca-detail');
+  caOpenModal(caDetailId);
+}
+
+function caConfirmDelete(){
+  caDeleteTargetId=caDetailId;
+  closeModal('modal-ca-detail');
+  document.getElementById('modal-ca-confirm').style.display='flex';
+}
+
+async function caDeleteConfirmed(){
+  if(!caDeleteTargetId)return;
+  const {error}=await sb.from('contas_anuncio').delete().eq('id',caDeleteTargetId);
+  if(error){alert('Erro ao excluir: '+error.message);return;}
+  contasAnuncio=contasAnuncio.filter(x=>x.id!==caDeleteTargetId);
+  caDeleteTargetId=null;
+  closeModal('modal-ca-confirm');
+  caRenderAll();
+  log('Conta de anúncio excluída');
+}
+
+function caSelectStatus(el){
+  document.querySelectorAll('.ca-status-opt').forEach(x=>{
+    x.style.borderColor='transparent';
+  });
+  el.style.borderColor=caStatusColors[el.dataset.val]?.color||'#fff';
+  document.getElementById('ca-status-val').value=el.dataset.val;
+  document.getElementById('ca-field-desativ').style.display=el.dataset.val==='desativada'?'block':'none';
+  if(el.dataset.val==='desativada')document.getElementById('ca-desativ').value=CA_TODAY();
+}
+
+function caRenderFormOps(){
+  const el=document.getElementById('ca-ops-tags');
+  if(!el)return;
+  el.innerHTML=caFormOps.map(o=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text3)">
+    ${o}<button onclick="caRemoveFormOp('${o}')" style="background:none;border:none;cursor:pointer;padding:0;color:var(--text5);font-size:14px;line-height:1">&times;</button>
+  </span>`).join('');
+}
+function caAddOpToForm(){
+  const v=document.getElementById('ca-op-sel').value;
+  if(v&&!caFormOps.includes(v)){caFormOps.push(v);caRenderFormOps();}
+}
+function caRemoveFormOp(o){caFormOps=caFormOps.filter(x=>x!==o);caRenderFormOps();}
+
+function caOpenModal(id){
+  caEditingId=id||null;
+  document.getElementById('ca-modal-title').textContent=caEditingId?'Editar Conta de Anúncio':'Nova Conta de Anúncio';
+  caUpdateOpFilter();
+
+  // Reset status visual
+  document.querySelectorAll('.ca-status-opt').forEach(x=>x.style.borderColor='transparent');
+
+  if(caEditingId){
+    const a=contasAnuncio.find(x=>x.id===caEditingId);
+    if(!a)return;
+    document.getElementById('ca-num').value=a.num||'';
+    document.getElementById('ca-moeda').value=a.moeda||'BRL';
+    document.getElementById('ca-cartao').value=a.cartao||'';
+    document.getElementById('ca-titular').value=a.titular||'';
+    document.getElementById('ca-obs').value=a.obs||'';
+    document.getElementById('ca-atrib').value=a.atrib||CA_TODAY();
+    document.getElementById('ca-desativ').value=a.desativ||CA_TODAY();
+    document.getElementById('ca-status-val').value=a.status||'ativo-uso';
+    document.getElementById('ca-field-desativ').style.display=a.status==='desativada'?'block':'none';
+    const activeOpt=document.querySelector(`.ca-status-opt[data-val="${a.status}"]`);
+    if(activeOpt)activeOpt.style.borderColor=caStatusColors[a.status]?.color||'#fff';
+    caFormOps=[...(a.ops||[])];
+  } else {
+    ['ca-num','ca-cartao','ca-titular','ca-obs'].forEach(id=>{document.getElementById(id).value='';});
+    document.getElementById('ca-moeda').value='BRL';
+    document.getElementById('ca-atrib').value=CA_TODAY();
+    document.getElementById('ca-desativ').value=CA_TODAY();
+    document.getElementById('ca-status-val').value='ativo-uso';
+    document.getElementById('ca-field-desativ').style.display='none';
+    const defaultOpt=document.querySelector('.ca-status-opt[data-val="ativo-uso"]');
+    if(defaultOpt)defaultOpt.style.borderColor=caStatusColors['ativo-uso'].color;
+    caFormOps=[];
+  }
+  caRenderFormOps();
+  document.getElementById('modal-conta-anuncio').style.display='flex';
+}
+
+function caCloseModal(){
+  document.getElementById('modal-conta-anuncio').style.display='none';
+}
+
+async function caSaveModal(){
+  const num=document.getElementById('ca-num').value.trim();
+  if(!num){alert('Informe o número da conta');return;}
+  const moeda=document.getElementById('ca-moeda').value;
+  const cartao=document.getElementById('ca-cartao').value.trim();
+  const titular=document.getElementById('ca-titular').value.trim();
+  const obs=document.getElementById('ca-obs').value.trim();
+  const status=document.getElementById('ca-status-val').value||'ativo-uso';
+  const atrib=document.getElementById('ca-atrib').value||CA_TODAY();
+  const desativ=status==='desativada'?(document.getElementById('ca-desativ').value||CA_TODAY()):null;
+  const ops=caFormOps.length?[...caFormOps]:[];
+
+  const payload={num,moeda,cartao:cartao||null,titular:titular||null,obs:obs||null,status,atrib,desativ,ops};
+
+  if(caEditingId){
+    const {data,error}=await sb.from('contas_anuncio').update(payload).eq('id',caEditingId).select().single();
+    if(error){alert('Erro ao salvar: '+error.message);return;}
+    const idx=contasAnuncio.findIndex(x=>x.id===caEditingId);
+    if(idx>=0)contasAnuncio[idx]={...contasAnuncio[idx],...data};
+    log('Conta de anúncio editada: '+num);
+  } else {
+    const {data,error}=await sb.from('contas_anuncio').insert(payload).select().single();
+    if(error){alert('Erro ao salvar: '+error.message);return;}
+    contasAnuncio.unshift(data);
+    log('Conta de anúncio adicionada: '+num);
+  }
+  caCloseModal();
+  caRenderAll();
+}
 </script>
 </body>
 </html>
