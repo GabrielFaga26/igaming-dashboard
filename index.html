@@ -621,7 +621,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
       <div><label>Operação</label>
         <select id="custo-op"><option value="">Selecione...</option></select>
       </div>
-      <div><label>Data</label><input type="date" id="custo-data"/></div>
+      <div><label>Mês de referência</label><input type="month" id="custo-data"/></div>
     </div>
     <div style="margin-bottom:1rem">
       <label>Descrição</label>
@@ -3152,7 +3152,7 @@ function renderCustos(){
         <tbody>${items.map(c=>`<tr>
           <td>${c.descricao}${c.tipo==='percentual'?` <span class="pill pb" style="font-size:10px">${c.percentual_valor}% ${c.percentual_base}</span>`:''}</td>
           <td><span class="pill pb" style="font-size:10px">${c.operacao}</span></td>
-          <td style="font-size:12px;color:var(--text4)">${c.data?.split('-').reverse().join('/')||'—'}</td>
+          <td style="font-size:12px;color:var(--text4)">${(c.data?new Date(c.data+'T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}):'—')}</td>
           <td style="color:#a78bfa;font-weight:500">${fmtBRL(getCustoValorBRL(c))}</td>
           <td style="display:flex;gap:4px">
             <button class="btn bs" onclick="duplicarCusto(${c.id})" title="Duplicar para próximo mês" style="padding:4px 8px">📋</button>
@@ -3165,13 +3165,29 @@ function renderCustos(){
   }).join('');
 }
 
-function getCustoValorBRL(c){
+function getCustoValorBRL(c,forceMonth){
   if(c.tipo==='percentual'){
-    // calculate based on current filtered data
-    const vis=getVisValue();
-    const di=document.getElementById('dt-i')?.value||'';
-    const df=document.getElementById('dt-f')?.value||'';
+    // use custo's own month as reference period
+    const mes=forceMonth||(c.data?c.data.substring(0,7):'');
+    let di='',df='';
+    if(mes){
+      const [y,mo]=mes.split('-').map(Number);
+      const lastDay=new Date(y,mo,0).getDate();
+      di=mes+'-01';
+      df=mes+'-'+String(lastDay).padStart(2,'0');
+    } else {
+      // fallback to current filter
+      di=document.getElementById('dt-i')?.value||'';
+      df=document.getElementById('dt-f')?.value||'';
+    }
+    // get data for that month and that operation
+    const savedDi=document.getElementById('dt-i')?.value;
+    const savedDf=document.getElementById('dt-f')?.value;
+    if(di&&document.getElementById('dt-i'))document.getElementById('dt-i').value=di;
+    if(df&&document.getElementById('dt-f'))document.getElementById('dt-f').value=df;
     const {mL,mI,mF,mH}=getFilteredData('op:'+c.operacao);
+    if(savedDi&&document.getElementById('dt-i'))document.getElementById('dt-i').value=savedDi;
+    if(savedDf&&document.getElementById('dt-f'))document.getElementById('dt-f').value=savedDf;
     const m=calcMetrics(mL,mI,mF,0,mH);
     let base=0;
     if(c.percentual_base==='investimento')base=m.inv;
@@ -3230,7 +3246,7 @@ function verDetalhesGastos(){
     <table style="margin-top:8px">
       <thead><tr><th>Data</th><th>Descrição</th><th>Operação</th><th>Valor</th></tr></thead>
       <tbody>${dados.map(c=>`<tr>
-        <td style="font-size:12px">${c.data?.split('-').reverse().join('/')||'—'}</td>
+        <td style="font-size:12px">${(c.data?new Date(c.data+'T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}):'—')}</td>
         <td>${c.descricao}</td>
         <td><span class="pill pb" style="font-size:10px">${c.operacao}</span></td>
         <td style="color:#a78bfa;font-weight:500">${fmtBRL(getCustoValorBRL(c))}</td>
@@ -3254,7 +3270,7 @@ function abrirModalCusto(id){
   if(id){
     const c=custos.find(x=>x.id===id);if(!c)return;
     document.getElementById('custo-op').value=c.operacao||'';
-    document.getElementById('custo-data').value=c.data||'';
+    document.getElementById('custo-data').value=c.data?c.data.substring(0,7):'';
     document.getElementById('custo-desc').value=c.descricao||'';
     setTipoCusto(c.tipo||'fixo');
     if(c.tipo==='percentual'){
@@ -3266,7 +3282,7 @@ function abrirModalCusto(id){
     }
   } else {
     document.getElementById('custo-op').value='';
-    document.getElementById('custo-data').value=getBrasiliaDate(0);
+    document.getElementById('custo-data').value=getBrasiliaDate(0).substring(0,7);
     document.getElementById('custo-desc').value='';
     document.getElementById('custo-valor').value='';
     document.getElementById('custo-moeda').value='BRL';
@@ -3280,7 +3296,8 @@ function editarCusto(id){abrirModalCusto(id);}
 async function salvarCusto(){
   const id=document.getElementById('custo-edit-id').value;
   const op=document.getElementById('custo-op').value;
-  const data=document.getElementById('custo-data').value;
+  const mesVal=document.getElementById('custo-data').value; // YYYY-MM
+  const data=mesVal?(mesVal+'-01'):'';
   const desc=document.getElementById('custo-desc').value.trim();
   const tipo=document.getElementById('btn-tipo-fixo').classList.contains('active')?'fixo':'percentual';
   const st=document.getElementById('custo-status');
