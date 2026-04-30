@@ -1019,6 +1019,7 @@ async function mostrarApp(){
   await carregarAcordos();
   await carregarProjetos();
   if(podeVerCustos)await carregarCustos();
+  await carregarContasAnuncio();
   await carregarFTDs();
   updateSelects();
 
