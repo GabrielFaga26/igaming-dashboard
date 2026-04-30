@@ -3082,7 +3082,13 @@ async function caSaveModal(){
 let custos=[], incluirGastos=false;
 
 async function carregarCustos(){
-  const {data}=await sb.from('custos').select('*').order('data',{ascending:false});
+  let query=sb.from('custos').select('*').order('data',{ascending:false});
+  if(currentUserData?.role==='gestor'){
+    const ops=getGestorOps();
+    if(ops.length===1)query=query.eq('operacao',ops[0]);
+    else if(ops.length>1)query=query.in('operacao',ops);
+  }
+  const {data}=await query;
   if(data)custos=data;
   renderCustos();
   atualizarSelectsCustos();
