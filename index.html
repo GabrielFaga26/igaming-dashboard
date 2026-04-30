@@ -207,14 +207,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <button class="btn bs" style="align-self:flex-end" onclick="debugColC()" id="btn-debug-colc">🔍 Testar col C</button>
   </div>
 
-  <div id="gastos-hero-block" style="display:none;margin-bottom:1rem">
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-      <div class="hero-m" style="border-color:#7c3aed;background:#1a0a2e">
-        <div class="hero-label">Gastos do período</div>
-        <div class="hero-val" id="h-gastos" style="color:#a78bfa">—</div>
-        <button onclick="verDetalhesGastos()" style="background:none;border:none;color:#7c3aed;font-size:11px;cursor:pointer;margin-top:4px">ver detalhes 👁</button>
-      </div>
-    </div>
+  <div id="gastos-hero-block" style="display:none;margin-bottom:0">
   </div>
   <div class="hero">
     <div class="hero-m accent"><div class="hero-label">Investimento</div><div class="hero-val" id="h-inv">—</div></div>
@@ -223,6 +216,11 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
     <div class="hero-m green"><div class="hero-label">Receita Total</div><div class="hero-val" id="h-rec">—</div></div>
     <div class="hero-m green"><div class="hero-label">Lucro</div><div class="hero-val" id="h-lucro">—</div></div>
     <div class="hero-m" id="h-roi-card"><div class="hero-label">ROI</div><div class="hero-val" id="h-roi">—</div></div>
+    <div class="hero-m" id="h-gastos-card" style="display:none;border-color:#7c3aed;background:#1a0a2e">
+      <div class="hero-label">Gastos</div>
+      <div class="hero-val" id="h-gastos" style="color:#a78bfa">—</div>
+      <button onclick="verDetalhesGastos()" style="background:none;border:none;color:#a78bfa;font-size:10px;cursor:pointer;margin-top:4px;font-family:inherit">ver detalhes 👁</button>
+    </div>
   </div>
 
   <div class="sec-mg">
@@ -495,22 +493,27 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
   </div>
 
   <div class="cfg-section" id="cfg-hotmart-section">
-    <div class="cfg-section-title">Hotmart — Planilha de Vendas</div>
+    <div class="cfg-section-title">Hotmart — Planilhas de Vendas</div>
     <div class="card">
       <div style="font-size:12px;color:var(--text4);margin-bottom:1rem">Col F = Valor USD · Col J = Data da venda · Col L = ID do Produto</div>
-      <div style="margin-bottom:1rem">
-        <label>ID ou URL da planilha</label>
-        <input type="text" id="hotmart-id" placeholder="Cole a URL ou ID da planilha"/>
+      <div id="hotmart-sheets-form">
+        <div class="acc-block" id="hotmart-sheet-0">
+          <div class="fg" style="margin-bottom:6px">
+            <div style="grid-column:1/-1"><label>ID ou URL da planilha</label>
+              <input type="text" class="hotmart-sheet-id" placeholder="Cole a URL ou ID"/></div>
+            <div><label>Nome da aba</label>
+              <input type="text" class="hotmart-sheet-aba" placeholder="Ex: Dados Geral" value="Dados Geral"/></div>
+            <div style="display:flex;align-items:flex-end">
+              <button class="btn bs" onclick="testarHotmartBlock(this)">Testar</button>
+            </div>
+          </div>
+          <span class="hotmart-test-status" style="font-size:12px;color:var(--text4)"></span>
+        </div>
       </div>
-      <div style="margin-bottom:1rem">
-        <label>Nome da aba</label>
-        <input type="text" id="hotmart-aba" placeholder="Ex: Dados Geral" value="Dados Geral"/>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn bp" onclick="salvarConfigHotmart()">Salvar tudo</button>
+        <button class="btn bs" onclick="addHotmartSheet()">+ Adicionar planilha</button>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn bp" onclick="salvarConfigHotmart()">Salvar</button>
-        <button class="btn bs" onclick="testarSheet('hotmart-id','hotmart-aba','hotmart-test-status')">Testar conexão</button>
-      </div>
-      <div id="hotmart-test-status" style="display:none;margin-top:8px"></div>
     </div>
   </div>
 
@@ -532,6 +535,23 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
 </div>
 
 </div>
+</div>
+
+<!-- MODAL DUPLICAR CUSTO -->
+<div class="modal-overlay" id="modal-dup-custo" style="display:none" onclick="if(event.target===this)closeModal('modal-dup-custo')">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title">Duplicar para qual mês?</div>
+    <input type="hidden" id="dup-custo-id"/>
+    <div style="margin-bottom:1.25rem">
+      <label>Mês de destino</label>
+      <input type="month" id="dup-custo-mes" style="font-size:16px"/>
+      <div class="hint">O custo será duplicado para esse mês e abrirá para edição</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn bp" style="flex:1" onclick="confirmarDuplicar()">Duplicar e editar</button>
+      <button class="btn" onclick="closeModal('modal-dup-custo')">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL CUSTO -->
@@ -573,6 +593,7 @@ label{font-size:12px;color:var(--text4);display:block;margin-bottom:4px}
           <select id="custo-pct-base">
             <option value="investimento">Investimento</option>
             <option value="receita_cpa">Receita CPA</option>
+            <option value="receita_hotmart">Receita Hotmart</option>
             <option value="receita_total">Receita Total</option>
           </select>
         </div>
@@ -876,17 +897,68 @@ async function carregarConfig(){
   const {data}=await sb.from('config').select('*');
   if(data)data.forEach(r=>{
     if(r.chave==='dolar'){dolar=parseFloat(r.valor)||5.27;document.getElementById('cfg-dolar').value=dolar;const sel=document.getElementById('dolar-sel');for(let o of sel.options)if(parseFloat(o.value)===dolar)o.selected=true;}
-    if(r.chave==='hotmart-id'){const el=document.getElementById('hotmart-id');if(el)el.value=r.valor;}
-    if(r.chave==='hotmart-aba'){const el=document.getElementById('hotmart-aba');if(el)el.value=r.valor;}
+    if(r.chave==='hotmart-sheets'){
+      try{
+        const sheets=JSON.parse(r.valor||'[]');
+        const form=document.getElementById('hotmart-sheets-form');
+        if(form&&sheets.length){
+          // populate first block
+          const blocks=form.querySelectorAll('.acc-block');
+          sheets.forEach((s,i)=>{
+            let block=blocks[i];
+            if(!block){addHotmartSheet();block=form.querySelectorAll('.acc-block')[i];}
+            if(block){block.querySelector('.hotmart-sheet-id').value=s.id||'';block.querySelector('.hotmart-sheet-aba').value=s.aba||'';}
+          });
+        }
+      }catch(e){}
+    }
   });
 }
 
+function addHotmartSheet(){
+  const form=document.getElementById('hotmart-sheets-form');
+  const idx=form.querySelectorAll('.acc-block').length;
+  const div=document.createElement('div');div.className='acc-block';
+  div.innerHTML=`<div class="fg" style="margin-bottom:6px">
+    <div style="grid-column:1/-1"><label>ID ou URL</label><input type="text" class="hotmart-sheet-id" placeholder="Cole a URL ou ID"/></div>
+    <div><label>Nome da aba</label><input type="text" class="hotmart-sheet-aba" placeholder="Ex: Dados Geral" value="Dados Geral"/></div>
+    <div style="display:flex;align-items:flex-end;gap:6px">
+      <button class="btn bs" onclick="testarHotmartBlock(this)">Testar</button>
+      <button class="btn bs bd" onclick="this.closest('.acc-block').remove()">Remover</button>
+    </div>
+  </div><span class="hotmart-test-status" style="font-size:12px;color:var(--text4)"></span>`;
+  form.appendChild(div);
+}
+
+async function testarHotmartBlock(btn){
+  const block=btn.closest('.acc-block');
+  const idRaw=block.querySelector('.hotmart-sheet-id').value.trim();
+  const aba=block.querySelector('.hotmart-sheet-aba').value.trim();
+  const st=block.querySelector('.hotmart-test-status');
+  if(!idRaw||!aba){st.textContent='Preencha ID e aba';st.style.color='#f87171';return;}
+  st.textContent='Testando...';st.style.color='var(--text4)';
+  try{
+    const resp=await fetch(buildURL(extractId(idRaw),aba));
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const rows=parseCSV(await resp.text());
+    st.textContent=`✓ OK — ${rows.length} linhas`;st.style.color='#4ade80';
+  }catch(e){st.textContent='Erro: '+e.message;st.style.color='#f87171';}
+}
+
 async function salvarConfigHotmart(){
-  const id=document.getElementById('hotmart-id').value.trim();
-  const aba=document.getElementById('hotmart-aba').value.trim();
-  await sb.from('config').upsert({chave:'hotmart-id',valor:id?extractId(id):''});
-  await sb.from('config').upsert({chave:'hotmart-aba',valor:aba||'Dados Geral'});
-  log('Config Hotmart salva');alert('Configuração Hotmart salva!');
+  const sheets=[];
+  document.querySelectorAll('#hotmart-sheets-form .acc-block').forEach(block=>{
+    const idRaw=block.querySelector('.hotmart-sheet-id').value.trim();
+    const aba=block.querySelector('.hotmart-sheet-aba').value.trim();
+    if(idRaw&&aba)sheets.push({id:extractId(idRaw),aba});
+  });
+  await sb.from('config').upsert({chave:'hotmart-sheets',valor:JSON.stringify(sheets)});
+  // backwards compat
+  if(sheets[0]){
+    await sb.from('config').upsert({chave:'hotmart-id',valor:sheets[0].id});
+    await sb.from('config').upsert({chave:'hotmart-aba',valor:sheets[0].aba});
+  }
+  log('Config Hotmart salva ('+sheets.length+' planilha(s))');alert('Configuração Hotmart salva!');
 }
 async function salvarDolarDB(val){
   dolar=val||5.27;
@@ -1520,8 +1592,18 @@ async function importarTudo(){
   // Importar Hotmart
   hotmartData=[];
   try{
-    const hIdRaw=(await sb.from('config').select('valor').eq('chave','hotmart-id').single()).data?.valor||'';
-    const hAba=(await sb.from('config').select('valor').eq('chave','hotmart-aba').single()).data?.valor||'Dados Geral';
+    const hSheetsRaw=(await sb.from('config').select('valor').eq('chave','hotmart-sheets').single()).data?.valor||'';
+    let hSheets=[];
+    try{hSheets=JSON.parse(hSheetsRaw);}catch(e){}
+    // backwards compat
+    if(!hSheets.length){
+      const hId=(await sb.from('config').select('valor').eq('chave','hotmart-id').single()).data?.valor||'';
+      const hAba=(await sb.from('config').select('valor').eq('chave','hotmart-aba').single()).data?.valor||'';
+      if(hId)hSheets=[{id:extractId(hId),aba:hAba||'Dados Geral'}];
+    }
+    for(const hSheet of hSheets){
+    const hIdRaw=hSheet.id;
+    const hAba=hSheet.aba;
     if(hIdRaw){
       const hId=extractId(hIdRaw);
       const resp=await fetch(buildURL(hId,hAba));
@@ -1547,10 +1629,10 @@ async function importarTudo(){
         });
         // log amostra col L para debug
         const sampleL=rows.slice(0,5).map(r=>`L="${r[11]}" K="${r[10]}" F="${r[5]}" J="${r[9]}"`);
-        log(`Hotmart: ${rows.length} linhas, ${hotmartData.length} vendas vinculadas`);
-        log(`Hotmart amostra: ${sampleL.join(' | ')}`);
+        log(`Hotmart "${hAba}": ${rows.length} linhas, ${hotmartData.length} vendas total`);
       }
     }
+    } // end for hSheets
   }catch(e){log('Erro Hotmart: '+e.message);}
   document.getElementById('last-up').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
   st.textContent=`${lT} leads · R$ ${iT.toFixed(2)}`;
@@ -2483,6 +2565,7 @@ function getCustoValorBRL(c){
     let base=0;
     if(c.percentual_base==='investimento')base=m.inv;
     else if(c.percentual_base==='receita_cpa')base=m.recCPA||0;
+    else if(c.percentual_base==='receita_hotmart')base=m.recHotmart||0;
     else if(c.percentual_base==='receita_total')base=m.rec;
     return base*(c.percentual_valor/100);
   }
@@ -2515,7 +2598,7 @@ function toggleIncluirGastos(){
   btn.textContent=gastosAtivo?'💰 Ocultar gastos':'💰 Incluir gastos';
   btn.style.background=gastosAtivo?'#3b0764':'';
   btn.style.borderColor=gastosAtivo?'#7c3aed':'';
-  document.getElementById('gastos-hero-block').style.display=gastosAtivo?'block':'none';
+  document.getElementById('h-gastos-card').style.display=gastosAtivo?'':'none';
   calcular();
 }
 
@@ -2620,17 +2703,34 @@ async function removerCusto(id){
   renderCustos();atualizarSelectsCustos();calcular();
 }
 
-async function duplicarCusto(id){
+function duplicarCusto(id){
   const c=custos.find(x=>x.id===id);if(!c)return;
-  // advance date by 1 month
+  // show month picker modal
+  document.getElementById('dup-custo-id').value=id;
+  // default to next month
   const d=new Date(c.data+'T12:00:00');
   d.setMonth(d.getMonth()+1);
-  const novaData=d.toISOString().split('T')[0];
-  const payload={...c,data:novaData};
-  delete payload.id;delete payload.created_at;
+  document.getElementById('dup-custo-mes').value=d.toISOString().substring(0,7);
+  document.getElementById('modal-dup-custo').style.display='flex';
+}
+
+async function confirmarDuplicar(){
+  const id=parseInt(document.getElementById('dup-custo-id').value);
+  const mes=document.getElementById('dup-custo-mes').value;
+  const c=custos.find(x=>x.id===id);if(!c||!mes)return;
+  // keep same day, change month
+  const dia=c.data?.split('-')[2]||'01';
+  const novaData=mes+'-'+dia;
+  const payload={operacao:c.operacao,data:novaData,descricao:c.descricao,tipo:c.tipo,
+    valor:c.valor,moeda:c.moeda,percentual_base:c.percentual_base,percentual_valor:c.percentual_valor};
   const {data:nd}=await sb.from('custos').insert(payload).select().single();
-  if(nd)custos.unshift(nd);
-  renderCustos();atualizarSelectsCustos();
+  closeModal('modal-dup-custo');
+  if(nd){
+    custos.unshift(nd);
+    renderCustos();atualizarSelectsCustos();
+    // open edit modal so user can adjust if needed
+    editarCusto(nd.id);
+  }
   log('Custo duplicado: '+c.descricao+' → '+novaData.split('-').reverse().join('/'));
 }
 
